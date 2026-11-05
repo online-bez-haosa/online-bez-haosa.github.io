@@ -1,0 +1,1001 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Мария · реклама и чат-боты</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Marck+Script&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Цвета с карточек тарифов Маши: крем, песок, золото, тёмный шоколад */
+    --bg: #F6EFE5;
+    --sand: #EADCC9;
+    --card: #FFFBF4;
+    --line: rgba(122, 82, 38, .18);
+    --text: #2E2118;
+    --about: #5A4737;
+    --muted: #7D6A57;
+    --gold: #A67A3F;
+    --gold-deep: #7A5226;
+    --gold-light: #E9CFA0;
+    --gold-text: linear-gradient(100deg, #6E4A20 0%, #B98E52 42%, #D9B981 55%, #7A5226 100%);
+    --gold-frame: linear-gradient(135deg, #E9CFA0 0%, #A67A3F 38%, #F3E2C1 62%, #8A6230 100%);
+    --btn: linear-gradient(100deg, #3A2A1E 0%, #5B412C 100%);
+    --btn-text: #FBF0DE;
+    --shadow: rgba(92, 63, 30, .18);
+    --main-btn: #4A3424;
+    --main-btn-text: #FBF0DE;
+    --radius: 18px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { background: var(--bg); overflow-x: hidden; }
+  body {
+    color: var(--text); background: var(--bg);
+    font-family: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    font-size: 14.5px; line-height: 1.55; min-height: 100vh; overflow-x: hidden;
+    font-variant-numeric: lining-nums; /* у Playfair цифры по умолчанию «пляшут», для цен нужны ровные */
+  }
+  #app { position: relative; max-width: 560px; margin: 0 auto; padding: 0 16px calc(96px + env(safe-area-inset-bottom)); }
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; color: inherit; }
+  .todo { background: rgba(214, 41, 92, .12); color: #B51D4C; border-radius: 4px; padding: 0 3px; }
+  .serif { font-family: "Playfair Display", Georgia, serif; }
+
+  /* ===== Шапка как на карточках тарифов: огромное золотое слово, фото поверх него, атлас ===== */
+  .hero { position: relative; margin: 0 -16px; overflow: hidden; background: linear-gradient(170deg, #FBF5EC 0%, #F1E5D4 62%, var(--bg) 100%); }
+  .satin { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .hero-stage { position: relative; height: 584px; }
+  .hero-top { position: relative; z-index: 4; padding: 18px 16px 0; animation: rise .8s cubic-bezier(.2,.8,.3,1) backwards; }
+  .hero-badges { display: flex; flex-wrap: wrap; gap: 6px; }
+  .hero-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px 5px 7px; border-radius: 999px; font-size: 13px; font-weight: 700; color: #F3DFB9; background: var(--btn); box-shadow: 0 6px 14px var(--shadow); }
+  .hero-badge svg { width: 20px; height: 20px; }
+  .hero-title {
+    margin-top: 12px; font-family: "Playfair Display", Georgia, serif; font-weight: 700;
+    font-size: clamp(34px, 10.4vw, 48px); line-height: 1.06; letter-spacing: -.01em;
+  }
+  .hero-title em {
+    font-weight: 600; background: linear-gradient(100deg, #6E4A20 0%, #9C7238 35%, #C49A5C 50%, #9C7238 65%, #6E4A20 100%);
+    background-size: 240% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+    animation: shimmer 5s linear infinite;
+  }
+  /* Фото вырезано, снизу растворяется в фоне и едва заметно «дышит». drop-shadow сюда нельзя: маска его обрежет */
+  .hero-figure {
+    position: absolute; left: -24px; top: 186px; bottom: 0; z-index: 2; width: min(70vw, 330px); overflow: hidden;
+    -webkit-mask-image: linear-gradient(180deg, #000 80%, transparent 99%); mask-image: linear-gradient(180deg, #000 80%, transparent 99%);
+    animation: rise 1s .15s cubic-bezier(.2,.8,.3,1) backwards;
+  }
+  .hero-figure img { display: block; width: 100%; height: auto; transform-origin: 40% 20%; animation: breathe 9s ease-in-out infinite alternate; }
+
+  /* Коричневый развод за Машей */
+  .swirl {
+    position: absolute; left: -30px; top: 150px; z-index: 0; width: calc(100% + 60px); height: 430px; pointer-events: none; will-change: transform;
+    -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 24%, #000 72%, transparent 100%); mask-image: linear-gradient(180deg, transparent 0, #000 24%, #000 72%, transparent 100%);
+    transform-origin: 30% 50%; animation: drift 14s ease-in-out infinite alternate;
+  }
+  @keyframes drift { from { transform: rotate(-2deg) translateX(-6px); } to { transform: rotate(2.5deg) translateX(8px); } }
+
+  /* Рабочее место справа: ноутбук, в него прилетают заявки */
+  .desk { position: absolute; right: -6px; bottom: 26px; z-index: 1; width: 272px; animation: rise 1s .35s cubic-bezier(.2,.8,.3,1) backwards; }
+  .desk svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .lap-num { font-family: "Playfair Display", Georgia, serif; font-size: 36px; font-weight: 700; fill: #F3DFB9; }
+  .lap-num.bump { animation: flash .6s ease; }
+  .lap-label { font-size: 11px; font-weight: 600; fill: #D8C4A6; }
+  .lap-bot { font-size: 10.5px; font-weight: 600; fill: #E8DAC7; }
+  .lap-dot { fill: #E9CFA0; animation: lamp 1.2s infinite; }
+  @keyframes flash { 40% { fill: #FFFFFF; } }
+
+  /* Заявки прилетают сверху и опускаются в экран */
+  .pop {
+    position: absolute; right: 12px; top: 196px; z-index: 4; width: 176px; display: flex; gap: 8px; align-items: center;
+    padding: 7px 10px 7px 7px; border-radius: 15px; background: rgba(255, 251, 244, .97);
+    box-shadow: 0 10px 22px rgba(70, 45, 20, .22); font-size: 12.5px; line-height: 1.25; font-weight: 600;
+    opacity: 0; animation: fly 9s infinite;
+  }
+  .pop small { display: block; font-size: 10.5px; font-weight: 500; color: var(--muted); }
+  .pop .ava { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-size: 11.5px; font-weight: 700; color: var(--btn-text); background: var(--btn); }
+  .pop .ava.gold { background: var(--gold-frame); color: var(--text); }
+  .pop.p1 { animation-delay: .4s; }
+  .pop.p2 { animation-delay: 3.4s; }
+  .pop.p3 { animation-delay: 6.4s; }
+  @keyframes fly {
+    0% { opacity: 0; transform: translate(34px, -16px) scale(.9); }
+    4%, 19% { opacity: 1; transform: none; }
+    31% { opacity: 1; transform: translateY(190px) scale(.82); }
+    35%, 100% { opacity: 0; transform: translateY(232px) scale(.4); }
+  }
+
+  /* Подпись возле фото */
+  .hero-name { position: absolute; left: 14px; bottom: 16px; z-index: 3; padding: 6px 14px 8px; border-radius: 16px; line-height: 1; background: rgba(255, 251, 244, .94); box-shadow: 0 10px 24px rgba(70, 45, 20, .2); }
+  .hero-name b { display: block; font-family: "Marck Script", cursive; font-size: 30px; font-weight: 400; color: var(--gold-deep); }
+  .hero-name span { display: block; margin-top: 2px; font-size: 12.5px; font-weight: 700; }
+
+  @keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+  @keyframes breathe { from { transform: scale(1); } to { transform: scale(1.045); } }
+  @keyframes shimmer { from { background-position: 120% 0; } to { background-position: -120% 0; } }
+  @keyframes pop {
+    0% { opacity: 0; transform: translateY(12px) scale(.94); }
+    5%, 66% { opacity: 1; transform: none; }
+    72%, 100% { opacity: 0; transform: translateY(-6px); }
+  }
+  .about { position: relative; margin-top: 14px; color: var(--about); font-size: 15px; line-height: 1.6; }
+  .about b { color: var(--text); font-weight: 700; }
+
+  .nav {
+    position: sticky; top: 0; z-index: 5; display: flex; gap: 8px; overflow-x: auto;
+    margin: 16px -16px 0; padding: 10px 16px;
+    background: rgba(246, 239, 229, .92); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    scrollbar-width: none;
+  }
+  .nav::-webkit-scrollbar { display: none; }
+  .chip {
+    flex: none; padding: 8px 15px; border-radius: 999px; font-size: 13.5px; font-weight: 600; cursor: pointer;
+    color: var(--gold-deep); background: var(--card); border: 1px solid var(--line);
+  }
+  .chip.hot { color: var(--btn-text); background: var(--btn); border-color: transparent; }
+  .chip:active { background: var(--sand); }
+
+  section { margin-top: 34px; scroll-margin-top: 62px; }
+  h2 { font-family: "Playfair Display", Georgia, serif; font-size: 29px; font-weight: 700; line-height: 1.12; margin-bottom: 6px; }
+  h2 em { font-weight: 600; color: var(--gold); }
+  .h2-note { color: var(--muted); font-size: 14px; margin-bottom: 16px; }
+
+  .btn {
+    display: block; width: 100%; text-align: center; padding: 14px; border: 0; border-radius: 14px;
+    background: var(--btn); color: var(--btn-text); font-size: 14.5px; font-weight: 700; cursor: pointer;
+  }
+  .btn:active { opacity: .88; }
+  .btn.ghost { background: transparent; color: var(--gold-deep); border: 1px solid rgba(166, 122, 63, .55); }
+
+  /* ===== Барабан ===== */
+  .game-wrap { margin-top: 24px; padding: 1.5px; border-radius: 26px; background: var(--gold-frame); box-shadow: 0 16px 36px var(--shadow); scroll-margin-top: 62px; }
+  .game { border-radius: 25px; padding: 20px 16px 18px; background: linear-gradient(165deg, #FFF9EF 0%, #F3E6D2 100%); }
+  .game h3 { font-family: "Playfair Display", Georgia, serif; font-size: 27px; font-weight: 700; line-height: 1.12; text-align: center; }
+  .game h3 em { font-weight: 600; color: var(--gold); }
+  .game-text { margin-top: 8px; text-align: center; font-size: 14px; color: var(--about); }
+
+  .machine { position: relative; margin-top: 16px; padding: 14px 12px; border-radius: 20px; background: var(--btn); box-shadow: inset 0 2px 10px rgba(0,0,0,.35); }
+  .lamps { position: absolute; left: 22px; right: 22px; height: 5px; display: flex; justify-content: space-between; }
+  .lamps.t { top: 5px; } .lamps.b { bottom: 5px; }
+  .lamps i { width: 5px; height: 5px; border-radius: 50%; background: var(--gold-light); opacity: .45; }
+  .machine.spinning .lamps i { animation: lamp .5s infinite; }
+  .machine.spinning .lamps i:nth-child(even) { animation-delay: .25s; }
+  .machine.won .lamps i { opacity: 1; box-shadow: 0 0 6px #FFE3A8; }
+  @keyframes lamp { 0%, 100% { opacity: .25; } 50% { opacity: 1; box-shadow: 0 0 6px #FFE3A8; } }
+  .reels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .reel {
+    position: relative; height: 86px; overflow: hidden; border-radius: 12px;
+    background: linear-gradient(180deg, #E4D2B7 0%, #FFFBF4 28%, #FFFBF4 72%, #E4D2B7 100%);
+  }
+  .machine.won .reel { outline: 2px solid var(--gold-light); }
+  .strip { will-change: transform; }
+  .sym {
+    height: 86px; display: grid; place-items: center;
+    font-family: "Playfair Display", Georgia, serif; font-weight: 700; font-size: 31px; color: var(--text);
+  }
+  .sym.s30 { color: #8A5A1E; }
+  .attempts { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 14px; font-size: 13px; font-weight: 600; color: var(--muted); }
+  .key { width: 28px; height: 15px; display: block; transition: opacity .3s; }
+  .key.used { opacity: .22; filter: grayscale(1); }
+  .game-status { min-height: 21px; margin-top: 8px; text-align: center; font-size: 14px; font-weight: 600; color: var(--gold-deep); }
+  .spin-btn { margin-top: 8px; padding: 16px; font-size: 16px; }
+  .spin-btn[disabled] { opacity: .55; cursor: default; }
+
+  /* Купон */
+  .coupon { margin-top: 14px; padding: 16px; border-radius: 16px; background: var(--card); border: 1.5px dashed var(--gold); text-align: center; }
+  .coupon-label { font-size: 12px; font-weight: 700; color: var(--muted); }
+  .coupon-sum {
+    font-family: "Playfair Display", Georgia, serif; font-weight: 700; font-size: 60px; line-height: 1.05;
+    background: var(--gold-text); -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .coupon-rows { margin-top: 8px; font-size: 13.5px; color: var(--about); }
+  .coupon-rows b { color: var(--text); }
+  .coupon-pick { margin: 14px 0 8px; font-size: 13px; font-weight: 700; }
+  .picks { display: grid; gap: 6px; margin-bottom: 12px; }
+  .pick { padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: #fff; font-size: 13.5px; font-weight: 600; cursor: pointer; text-align: left; }
+  .pick.on { border-color: var(--gold-deep); background: var(--sand); }
+  .coupon-hint { margin-top: 10px; font-size: 12.5px; color: var(--muted); }
+  .sorry { margin-top: 14px; padding: 16px; border-radius: 16px; background: var(--card); border: 1px solid var(--line); text-align: center; }
+  .sorry h4 { font-family: "Playfair Display", Georgia, serif; font-size: 21px; font-weight: 700; line-height: 1.2; margin-bottom: 6px; }
+  .sorry p { font-size: 14px; color: var(--about); margin-bottom: 12px; }
+
+  details.rules { margin-top: 12px; font-size: 12.5px; color: var(--muted); }
+  details.rules summary { cursor: pointer; text-align: center; font-weight: 600; list-style: none; }
+  details.rules summary::-webkit-details-marker { display: none; }
+  details.rules ul { list-style: none; margin-top: 8px; }
+  details.rules li { margin: 4px 0; }
+
+  /* Панель только для просмотра прототипа */
+  .demo { margin-top: 12px; padding: 10px 12px; border: 1px dashed #B51D4C; border-radius: 12px; background: #fff; }
+  .demo-title { font-size: 11.5px; font-weight: 700; color: #B51D4C; margin-bottom: 7px; }
+  .demo-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .demo button { padding: 6px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); font-size: 12.5px; font-weight: 600; cursor: pointer; }
+  .demo button.on { background: var(--text); color: #fff; }
+
+  /* ===== Услуги: тёмные плитки с золотым значком, сразу видно, что это кнопка ===== */
+  .service { border-radius: 22px; margin-bottom: 12px; overflow: hidden; cursor: pointer; scroll-margin-top: 66px; background: var(--btn); color: var(--btn-text); box-shadow: 0 14px 30px var(--shadow); }
+  .service-top { display: grid; grid-template-columns: 62px 1fr; gap: 4px 14px; padding: 18px 16px 16px; }
+  .service-icon { width: 62px; height: 62px; padding: 2px; border-radius: 18px; background: var(--gold-frame); }
+  .service-icon div { width: 100%; height: 100%; border-radius: 16px; display: grid; place-items: center; background: #33241A; }
+  .service-icon svg { width: 40px; height: 40px; }
+  .service-title { font-family: "Playfair Display", Georgia, serif; font-size: 22px; font-weight: 700; line-height: 1.14; color: #F3DFB9; }
+  .service-short { grid-column: 1 / -1; margin-top: 10px; font-size: 14px; line-height: 1.5; color: #E8DAC7; }
+  .service-foot { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 14px; }
+  .service-price { font-size: 16px; font-weight: 700; color: #F3DFB9; }
+  .service-open { flex: none; padding: 9px 14px; border-radius: 999px; font-size: 13px; font-weight: 700; color: var(--text); background: linear-gradient(100deg, #F0DBB2, #CFA868); }
+  .service.open .service-open { background: rgba(255,255,255,.14); color: var(--btn-text); }
+  .service-more { display: none; padding: 16px; cursor: default; color: var(--text); background: var(--card); }
+  .service.open .service-more { display: block; }
+  /* Вторая линия услуг и тарифы: светлые плитки того же устройства */
+  .service.small { background: var(--card); color: var(--text); border: 1px solid rgba(166, 122, 63, .5); box-shadow: 0 6px 18px rgba(92, 63, 30, .1); }
+  .service.small .service-top { padding: 14px; }
+  .service.small .service-title { font-size: 18px; color: var(--text); }
+  .service.small .service-short { margin-top: 6px; color: var(--about); }
+  .service.small .service-price { color: var(--gold-deep); }
+  .service.small .service-more { padding-top: 0; }
+  .service.small.open .service-open { background: var(--sand); color: var(--text); }
+  .tile-sub { font-size: 12.5px; font-weight: 600; color: var(--muted); margin-top: 3px; }
+  .tile-card { display: block; width: 100%; border-radius: 12px; margin-bottom: 12px; }
+  .service-more p { font-size: 14px; color: var(--about); margin-bottom: 12px; }
+  .more-label { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+  .service-more ul { list-style: none; margin-bottom: 14px; }
+  .service-more li { position: relative; padding-left: 22px; margin: 6px 0; font-size: 14px; }
+  .service-more li::before { content: ""; position: absolute; left: 3px; top: 7px; width: 8px; height: 8px; transform: rotate(45deg); background: var(--gold); }
+  .opts { display: grid; gap: 6px; margin-bottom: 14px; }
+  .opt { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 10px 12px; border-radius: 12px; background: #F4EADB; font-size: 14px; }
+  .opt small { display: block; font-size: 12px; color: var(--muted); font-weight: 500; }
+  .opt b { flex: none; color: var(--text); font-weight: 700; }
+  .also-title { font-size: 14px; font-weight: 700; color: var(--gold-deep); margin: 20px 0 8px; }
+  .pay-note { font-size: 13px; color: var(--muted); margin-top: 10px; text-align: center; }
+
+  /* ===== Кейсы: потратили → получили ===== */
+  .case { padding: 14px; margin-bottom: 10px; border-radius: 18px; background: var(--card); border: 1px solid var(--line); }
+  .case-head { font-size: 12.5px; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
+  .case-flow { display: grid; grid-template-columns: 1fr 22px 1fr; align-items: center; gap: 6px; }
+  .case-flow small { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 1px; }
+  .case-spent { font-size: 19px; font-weight: 700; white-space: nowrap; }
+  .case-arrow { color: var(--gold); font-size: 20px; font-weight: 700; text-align: center; }
+  .case-got { font-family: "Playfair Display", Georgia, serif; font-size: 30px; font-weight: 700; line-height: 1.05; color: var(--gold-deep); white-space: nowrap; }
+  .case-note { margin-top: 8px; font-size: 13.5px; color: var(--about); }
+  .cases-note { margin-top: 2px; padding: 10px 12px; border-radius: 12px; background: #F4EADB; font-size: 13px; color: var(--about); }
+  .link-row { display: block; margin-top: 10px; padding: 12px; text-align: center; border-radius: 14px; border: 1px solid rgba(166, 122, 63, .55); font-size: 14px; font-weight: 700; color: var(--gold-deep); cursor: pointer; }
+
+  /* ===== Полезные посты ===== */
+  .useful-group { margin: 16px 0 8px; font-size: 14px; font-weight: 700; color: var(--gold-deep); }
+  .list { background: var(--card); border-radius: var(--radius); border: 1px solid var(--line); overflow: hidden; }
+  .item { display: flex; gap: 12px; align-items: center; padding: 13px 14px; border-bottom: 1px solid var(--line); cursor: pointer; }
+  .item:last-child { border-bottom: 0; }
+  .item:active { background: var(--sand); }
+  .item-icon { flex: none; width: 42px; height: 42px; border-radius: 13px; display: grid; place-items: center; background: #F4EADB; border: 1px solid rgba(166, 122, 63, .4); }
+  .item-icon svg { width: 28px; height: 28px; }
+  .item-main { flex: 1; min-width: 0; }
+  .item-title { font-size: 14px; font-weight: 700; line-height: 1.3; }
+  .item-desc { margin-top: 2px; font-size: 12.5px; line-height: 1.35; color: var(--muted); }
+  .item-arrow { flex: none; font-size: 19px; color: var(--gold); }
+
+  /* ===== Отзывы ===== */
+  .reviews { display: flex; gap: 10px; overflow-x: auto; margin: 0 -16px; padding: 0 16px 4px; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  .reviews::-webkit-scrollbar { display: none; }
+  .review { flex: none; width: 84%; display: flex; flex-direction: column; scroll-snap-align: center; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; }
+  .review .quote { font-family: "Playfair Display", Georgia, serif; font-size: 44px; line-height: .7; height: 22px; color: var(--gold); }
+  .review p { flex: 1; font-size: 14px; }
+  .review .who { margin-top: 10px; font-size: 12.5px; font-weight: 700; color: var(--gold-deep); }
+
+  /* ===== Удалёнка: отдельный по настроению блок на песочном фоне ===== */
+  .remote { margin: 40px -16px 0; padding: 30px 16px 24px; background: linear-gradient(180deg, var(--sand) 0%, #F1E6D6 100%); scroll-margin-top: 50px; }
+  .remote-head { display: flex; gap: 14px; align-items: center; margin-bottom: 12px; }
+  .remote-photo { flex: none; width: 82px; height: 82px; padding: 2px; border-radius: 50%; background: var(--gold-frame); }
+  .remote-photo img { display: block; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+  .remote h2 { margin: 0; font-size: 26px; }
+  .remote-text { color: var(--about); font-size: 14.5px; margin-bottom: 16px; }
+  .key-offer { display: flex; gap: 12px; align-items: center; padding: 14px; margin-bottom: 18px; border-radius: 16px; background: var(--card); border: 1px solid rgba(166, 122, 63, .45); cursor: pointer; }
+  .key-offer svg { flex: none; width: 56px; height: 30px; }
+  .key-offer b { display: block; font-size: 15px; }
+  .key-offer span { display: block; font-size: 13px; color: var(--about); }
+  .tariffs-title { font-size: 14px; font-weight: 700; margin-bottom: 10px; }
+
+  footer { text-align: center; color: var(--muted); font-size: 13px; margin-top: 26px; }
+  footer p + p { margin-top: 6px; }
+  footer a { color: var(--gold-deep); font-weight: 700; cursor: pointer; }
+
+  .sticky-cta { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; padding: 14px 16px calc(12px + env(safe-area-inset-bottom)); background: linear-gradient(transparent, var(--bg) 42%); }
+  .sticky-cta .btn { max-width: 528px; margin: 0 auto; box-shadow: 0 8px 24px var(--shadow); }
+  .in-tg .sticky-cta { display: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .machine.spinning .lamps i { animation: none; opacity: 1; }
+    .hero-top, .hero-figure, .hero-figure img, .swirl, .hero-title em, .desk, .lap-dot, .lap-num.bump { animation: none; }
+    .pop { animation: none; opacity: 0; }
+    .pop.p1 { opacity: 1; }
+  }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="goldKey" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#E9CFA0"/><stop offset=".5" stop-color="#A67A3F"/><stop offset="1" stop-color="#7A5226"/></linearGradient>
+  </defs>
+</svg>
+<div id="app"></div>
+
+<script>
+/* =====================================================================
+   ВСЁ СОДЕРЖИМОЕ — ЗДЕСЬ. Цены и тексты взяты из канала Маши 05.11.2026.
+   Всё в [квадратных скобках] на экране подсвечено розовым: спросить у Маши.
+   ===================================================================== */
+const ME = "https://t.me/pro_frilans20";
+const CH = "https://t.me/frilans_market";
+
+const CONFIG = {
+  bookingUrl: ME,
+  bookingLabel: "Написать Маше",
+
+  hero: {
+    badges: [{ icon: "target", text: "Реклама ВКонтакте" }, { icon: "chat", text: "Чат-боты" }],
+    title: "Привожу <em>клиентов</em>, а бот им отвечает",
+    name: "Мария",
+    role: "таргетолог",
+    // Заявки, которые по очереди прилетают в ноутбук. Это пример, не настоящая переписка и не настоящий счётчик
+    messages: [
+      { ava: "+1", gold: true, from: "из рекламы ВК", text: "Новая заявка" },
+      { ava: "А", from: "Анна, 3:14 ночи", text: "Сколько стоит?" },
+      { ava: "О", from: "Ольга", text: "Хочу записаться" },
+    ],
+    laptop: { label: "Новые заявки", start: 12, bot: "бот отвечает" },
+    photo: "photo.webp",
+    photoFallback: "photo.png",
+    about: "Настраиваю рекламу так, чтобы тебе писали, и делаю <b>чат-ботов, которые отвечают клиентам</b>, пока ты занята другим. Человек получает ответ сразу, а не остывает, пока ждёт два часа. Не знаешь, с чего начать? Напиши, вместе посмотрим.",
+  },
+
+  /* ---------- Барабан ---------- */
+  game: {
+    demo: true,        // панель для просмотра и игра в обычном браузере. Пока Маша смотрит по ссылке, оставляем true. Перед запуском в боте: false
+    gameId: "2026-1",  // поменяй, и у всех снова будет три попытки (новая игра к празднику)
+    attempts: 3,
+    daysValid: 7,
+    symbols: [10, 20, 30],
+    // Шанс на одно кручение, у каждого человека и каждого кручения отдельно, прошлые игры не влияют.
+    // Если сыграют 100 человек: 10% получат около 21, 20% около 8, 30% около 3, без скидки около 68
+    odds: { 10: 0.08, 20: 0.03, 30: 0.01 },
+    title: "Три совпадения дают <em>скидку</em>",
+    text: "Крути барабан. Если в ряд встанут три одинаковых числа, эта скидка твоя, на любую услугу. Попытки три, и второй раз они не появятся.",
+    consolation: {
+      title: "В этот раз не совпало",
+      text: "Зато посмотрю твоё сообщество глазами нового посетителя и скажу, что можно поправить. Бесплатно.",
+      button: "Хочу разбор",
+      message: "Привет! На барабане не совпало, хочу бесплатный разбор сообщества.",
+    },
+    rules: [
+      "Одна игра на человека, три попытки.",
+      "Скидка действует 7 дней с момента выигрыша.",
+      "Скидка только на работу Маши, рекламный бюджет оплачивается отдельно.",
+      "Не суммируется с другими акциями.",
+      "[Организатор и сроки акции: уточнить у Маши]",
+    ],
+  },
+
+  /* ---------- Услуги ---------- */
+  // Лесенка от меньшей цены к большей: сначала две светлые плитки, потом две главные тёмные
+  also: [
+    { id: "review", icon: "eye", title: "Разбор сообщества или канала", short: "Покажу, где теряются клиенты и что исправить прямо сейчас.", price: "1 500 ₽",
+      details: ["смотрю твою страницу глазами нового человека", "нахожу, чего не хватает", "даю конкретные шаги"], button: "Хочу разбор" },
+    { id: "pack", icon: "box", title: "Упаковка Telegram-канала", short: "Ты создаёшь канал, остальное делаю я: навигация, наполнение и подписчики.", price: "от 3 000 ₽",
+      details: ["навигация: знакомство, обо мне, услуги, кейсы", "наполнение канала", "подписчики"], button: "Хочу упаковку" },
+  ],
+  services: [
+    {
+      id: "bots",
+      icon: "chat",
+      title: "Чат-бот, похожий на живого человека",
+      short: "Встречает клиента, отвечает на частые вопросы и ведёт от приветствия до оплаты. Даже в 3 часа ночи.",
+      price: "от 5 000 ₽",
+      options: [["Основной", "Весь путь от приветствия до оплаты", "5 000 ₽"], ["Рассыльщик", "Мягко напоминает о тебе", "[2 000 ₽?]"], ["Под ключ", "Основной, рассыльщик и 14 дожимов", "24 000 ₽"]],
+      details: ["продуманная воронка продаж и автоответы", "пишу тексты сама, ты только утверждаешь", "паузы между сообщениями как в настоящей переписке", "макеты в едином стиле (в варианте под ключ)", "оставляю инструкцию, как им пользоваться"],
+      button: "Хочу чат-бота",
+    },
+    {
+      id: "ads",
+      icon: "target",
+      title: "Реклама ВКонтакте",
+      short: "Настрою и буду вести кабинет, чтобы приходили заявки, а бюджет не уходил впустую.",
+      price: "от 7 000 ₽",
+      options: [["7 дней", "7 000 ₽"], ["14 дней", "13 000 ₽"], ["21 день", "19 000 ₽"], ["1 месяц", "24 000 ₽"], ["[Только настройка, без ведения]", "[цена?]"]],
+      details: ["подбираю аудиторию, которой это правда нужно", "тестирую объявления и оставляю то, что работает", "показываю цифры: сколько потрачено и сколько пришло заявок"],
+      button: "Хочу рекламу",
+    },
+  ],
+  payNote: "Можно в рассрочку, к стоимости добавляется 20%.",
+
+  /* ---------- Кейсы ---------- */
+  cases: [
+    { head: "За 1 день", spent: "2 507 ₽", got: "95 заявок", note: "Заявка вышла примерно в 26 ₽. Многие считают такой бюджет слишком маленьким для таргета." },
+    { head: "За 2 дня", spent: "10 200 ₽", got: "365 заявок", note: "Заявка вышла примерно в 28 ₽." },
+    { head: "За 2 недели", spent: "59 000 ₽", got: "1 104 заявки", note: "Заявка вышла в 53,85 ₽." },
+  ],
+  casesNote: "Это реклама онлайн-обучения. В другой нише цифры будут свои, поэтому сначала смотрю твою ситуацию и только потом что-то обещаю.",
+  caseLinks: [
+    { label: "Все кейсы по рекламе ↗", url: CH + "/79" },
+    { label: "Кейсы по чат-ботам ↗", url: CH + "/73" },
+  ],
+
+  /* ---------- Полезные посты из канала ---------- */
+  useful: [
+    { title: "Про чат-ботов", items: [
+      { icon: "chat", title: "Зачем вообще нужен бот", desc: "Что он делает, пока ты занимаешься своими делами", url: CH + "/45" },
+      { icon: "funnel", title: "Заявки есть, а продаж нет", desc: "Пять причин, почему так бывает", url: CH + "/46" },
+      { icon: "chat", title: "Теряешь клиентов в личке?", desc: "Что делать, если не успеваешь отвечать", url: CH + "/120" },
+    ] },
+    { title: "Про рекламу", items: [
+      { icon: "target", title: "2 500 ₽ в день это мало?", desc: "Что вышло на таком бюджете", url: CH + "/80" },
+      { icon: "target", title: "Реклама на минимальном бюджете", desc: "Правда ли там совсем нет заявок", url: CH + "/106" },
+    ] },
+    { title: "Про сообщество", items: [
+      { icon: "eye", title: "Заходят и уходят, не подписавшись", desc: "Что отталкивает нового человека в сообществе ВК", url: CH + "/117" },
+    ] },
+  ],
+
+  /* ---------- Отзывы. Тексты из канала, разрешение и имена спросить у Маши ---------- */
+  reviews: [
+    { text: "Столько всего можно собрать в одном месте, чтобы клиенту было легко разобраться, а мне не приходилось каждый раз всё объяснять вручную.", who: "Чат-бот" },
+    { text: "Очень понравилось работать с тобой: всё сделано качественно, понятно и красиво. Бот получился реально классный и сильно помогает в группе.", who: "Чат-бот для сообщества ВК" },
+    { text: "Я очень долго выбирала среди специалистов и ни разу не пожалела, что доверилась тебе. Теперь всем буду советовать только тебя.", who: "Продающий чат-бот" },
+    { text: "Если бы не ты, я так и сливала бы свой бюджет. Сегодня реклама крутится, плюсики идут. Я счастлива.", who: "Реклама" },
+  ],
+
+  /* ---------- Удалёнка ---------- */
+  remote: {
+    photo: "photo-round.jpg",
+    title: "Хочешь работать <em>из дома?</em>",
+    text: "Я начинала с ребёнком на руках и долгами, считала каждую копейку. Сейчас работаю с телефона: дочка на занятиях, а я сижу в любимой кофейне и отвечаю девчонкам. Если тебе тоже интересна удалёнка, но непонятно, с чего начать, расскажу, какие есть варианты.",
+    key: {
+      title: "Сначала посмотри бесплатно",
+      text: "Гостевой ключ: 6 уроков, чтобы увидеть всё изнутри и решить, твоё это или нет.",
+      message: "Привет! Хочу гостевой ключ.",
+    },
+    tariffsTitle: "С чего можно начать",
+    tariffs: [
+      { id: "zad", icon: "phone", title: "Подработка прямо с телефона", sub: "Курс «Заработок на простых заданиях»", short: "Без блога и продаж. Выполняешь задания, когда есть свободное время.", price: "2 990 ₽", card: "cards/zadaniya.jpg" },
+      { id: "std", icon: "key", title: "Первая профессия в онлайне", sub: "Тариф «Стандарт»", short: "Больше 10 направлений на выбор: чат-боты, таргет, дизайн, тексты.", price: "6 990 ₽", card: "cards/standard.jpg" },
+      { id: "pre", icon: "crown", title: "Все направления сразу", sub: "Тариф «Премиум»", short: "Больше 20 направлений, в том числе нейросети и маркетплейсы.", price: "15 990 ₽", card: "cards/premium.jpg" },
+    ],
+    button: "Расскажи подробнее",
+    message: "Привет! Хочу узнать подробнее про удалёнку.",
+  },
+
+  footerNote: "Онлайн без хаоса",
+  footerLinks: [ { label: "Канал", url: CH }, { label: "Написать", url: ME } ],
+};
+</script>
+
+<script>
+/* --------- Служебное --------- */
+const tg = window.Telegram && window.Telegram.WebApp;
+const inTelegram = !!(tg && tg.platform && tg.platform !== "unknown");
+
+function esc(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+function haptic(kind) {
+  if (!inTelegram || !tg.HapticFeedback) return;
+  if (kind === "win") tg.HapticFeedback.notificationOccurred("success");
+  else tg.HapticFeedback.impactOccurred("light");
+}
+// Ссылки на t.me: сначала закрываем приложение, иначе на iPhone оно останется поверх чата
+function openUrl(url) {
+  haptic();
+  if (!inTelegram) { window.open(url, "_blank"); return; }
+  if (url.startsWith("https://t.me/")) { tg.close(); tg.openTelegramLink(url); }
+  else tg.openLink(url);
+}
+function messageUrl(text) { return ME + "?text=" + encodeURIComponent(text); }
+function markTodos(root) {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  while (walker.nextNode()) if (/\[[^\]]+\]/.test(walker.currentNode.nodeValue)) nodes.push(walker.currentNode);
+  nodes.forEach(node => {
+    const span = document.createElement("span");
+    span.innerHTML = esc(node.nodeValue).replace(/\[[^\]]+\]/g, m => `<span class="todo">${m}</span>`);
+    node.replaceWith(...span.childNodes);
+  });
+}
+const keySvg = (cls = "") => `<svg class="key ${cls}" viewBox="0 0 56 30" aria-hidden="true"><g fill="none" stroke="url(#goldKey)" stroke-width="4" stroke-linecap="round"><circle cx="13" cy="15" r="9.5"/><path d="M23 15h29M44 15v8M36 15v6"/></g></svg>`;
+const satinSvg = () => `<svg class="satin" viewBox="0 0 400 420" preserveAspectRatio="none" aria-hidden="true">
+  <defs><filter id="soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="16"/></filter></defs>
+  <g filter="url(#soft)" fill="none" stroke-linecap="round">
+    <path d="M-30 90C80 40 170 170 430 40" stroke="#FFFFFF" stroke-width="42" opacity=".9"/>
+    <path d="M-30 150C90 100 180 240 430 110" stroke="#DCC6A6" stroke-width="30" opacity=".55"/>
+    <path d="M-30 240C110 180 190 330 430 200" stroke="#FFFFFF" stroke-width="44" opacity=".8"/>
+    <path d="M-30 320C120 270 220 410 430 290" stroke="#D9C2A0" stroke-width="30" opacity=".45"/>
+    <path d="M-30 400C120 350 240 470 430 370" stroke="#FFFFFF" stroke-width="36" opacity=".7"/>
+  </g></svg>`;
+
+/* --------- Золотые значки --------- */
+const GL = `fill="none" stroke="url(#goldKey)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"`;
+const ICONS = {
+  target: `<g ${GL}><circle cx="20" cy="21" r="14"/><circle cx="20" cy="21" r="8"/><circle cx="20" cy="21" r="2.4"/><path d="M20 21 33 8M28 7l5 1 1 5"/></g>`,
+  chat: `<g ${GL}><path d="M6 10a4 4 0 0 1 4-4h16a4 4 0 0 1 4 4v9a4 4 0 0 1-4 4H15l-6 5v-5a4 4 0 0 1-3-4z"/><path d="M13 14.5h.01M18 14.5h.01M23 14.5h.01" stroke-width="3.4"/><path d="M34 17a3 3 0 0 1 2 3v7a3 3 0 0 1-3 3v4l-5-4h-7"/></g>`,
+  funnel: `<g ${GL}><path d="M5 7h30L24 21v11l-8 4V21z"/><path d="M11 13h18"/></g>`,
+  eye: `<g ${GL}><path d="M4 20s6-11 16-11 16 11 16 11-6 11-16 11S4 20 4 20z"/><circle cx="20" cy="20" r="5"/></g>`,
+  box: `<g ${GL}><path d="M20 5 34 12v16l-14 7-14-7V12z"/><path d="m6 12 14 7 14-7M20 19v16"/></g>`,
+  phone: `<g ${GL}><rect x="11" y="4" width="18" height="32" rx="4"/><path d="M18 31h4"/><path d="m16 19 3 3 6-6"/></g>`,
+  key: `<g ${GL}><circle cx="13" cy="20" r="8"/><path d="M21 20h15M31 20v6M26 20v4"/></g>`,
+  crown: `<g ${GL}><path d="M6 31h28L37 12l-9 7-8-12-8 12-9-7z"/><path d="M8 36h24"/></g>`,
+};
+const icon = name => `<svg viewBox="0 0 40 40" aria-hidden="true">${ICONS[name] || ""}</svg>`;
+
+/* --------- Ноутбук ровно, спереди. Левая часть экрана уходит за Машу, поэтому надписи стоят правее --------- */
+function laptopSvg(l) {
+  // Ряды клавиш: симметричные, ближний ряд чуть шире
+  let keys = "";
+  [[132, 170, 5.4], [140, 180, 5.8], [148.5, 190, 6.2]].forEach(([y, width, h]) => {
+    const n = 13, step = width / n, start = 120 - width / 2;
+    for (let i = 0; i < n; i++) keys += `<rect x="${(start + i * step + .7).toFixed(1)}" y="${y}" width="${(step - 1.4).toFixed(1)}" height="${h}" rx="1" fill="#6E5236"/>`;
+  });
+  return `<svg viewBox="0 0 240 172" aria-hidden="true">
+    <defs>
+      <linearGradient id="lapMetal" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#C9A673"/><stop offset=".5" stop-color="#F1E0C2"/><stop offset="1" stop-color="#C9A673"/></linearGradient>
+      <linearGradient id="lapDeck" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#CFB387"/><stop offset="1" stop-color="#F0E0C6"/></linearGradient>
+      <linearGradient id="lapScreen" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#55402E"/><stop offset="1" stop-color="#231810"/></linearGradient>
+      <filter id="lapBlur" x="-20%" y="-80%" width="140%" height="260%"><feGaussianBlur stdDeviation="6"/></filter>
+    </defs>
+    <ellipse cx="120" cy="166" rx="116" ry="7" fill="#5A3E20" opacity=".4" filter="url(#lapBlur)"/>
+    <rect x="20" y="2" width="200" height="124" rx="9" fill="url(#lapMetal)"/>
+    <rect x="25" y="7" width="190" height="114" rx="5" fill="url(#lapScreen)"/>
+    <circle cx="120" cy="4.6" r="1" fill="#6E5236"/>
+    <text class="lap-label" x="121" y="31">${esc(l.label)}</text>
+    <text class="lap-num" id="lap-num" x="120" y="72">${esc(l.start)}</text>
+    <g fill="#E9CFA0">
+      <rect x="168" y="60" width="7" height="12" rx="2" opacity=".45"/>
+      <rect x="177" y="52" width="7" height="20" rx="2" opacity=".6"/>
+      <rect x="186" y="44" width="7" height="28" rx="2" opacity=".8"/>
+      <rect x="195" y="34" width="7" height="38" rx="2"/>
+    </g>
+    <circle class="lap-dot" cx="124" cy="93" r="3"/>
+    <text class="lap-bot" x="131" y="97">${esc(l.bot)}</text>
+    <polygon points="20,126 220,126 236,158 4,158" fill="url(#lapDeck)"/>
+    ${keys}
+    <path d="M4 158h232v2a6 6 0 0 1-6 6H10a6 6 0 0 1-6-6z" fill="#A98757"/>
+  </svg>`;
+}
+
+/* --------- Коричневый развод за фото --------- */
+const swirlSvg = () => `<svg class="swirl" viewBox="0 0 440 420" preserveAspectRatio="none" aria-hidden="true">
+  <defs>
+    <filter id="sw1" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="24"/></filter>
+    <filter id="sw2" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="9"/></filter>
+    <filter id="sw3" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="2.4"/></filter>
+  </defs>
+  <g filter="url(#sw1)" fill="none" stroke-linecap="round">
+    <ellipse cx="150" cy="210" rx="145" ry="150" fill="#8A6A45" opacity=".62"/>
+    <path d="M30 330C120 250 40 130 170 80s190 70 260 20" stroke="#5B412C" stroke-width="58" opacity=".5"/>
+  </g>
+  <g filter="url(#sw2)" fill="none" stroke-linecap="round">
+    <path d="M10 250C110 170 170 300 270 210s90-120 170-90" stroke="#B98E52" stroke-width="30" opacity=".55"/>
+    <path d="M40 120c70 40 60 120 150 120s110-90 200-60" stroke="#4A3424" stroke-width="20" opacity=".4"/>
+  </g>
+  <g filter="url(#sw3)" fill="none" stroke-linecap="round">
+    <path d="M6 200C90 130 150 250 240 180s120-80 200-50" stroke="#E9CFA0" stroke-width="5" opacity=".6"/>
+    <path d="M20 300c90-60 130 30 210-30s110-60 190-30" stroke="#6E4A20" stroke-width="5" opacity=".4"/>
+  </g>
+</svg>`;
+
+/* --------- Разметка --------- */
+function serviceCard(s, small) {
+  return `<div class="service${small ? " small" : ""}" data-service id="service-${esc(s.id)}">
+    <div class="service-top" style="${small && !s.icon ? "display:block" : ""}">
+      ${s.icon ? `<div class="service-icon"><div>${icon(s.icon)}</div></div>` : ""}
+      <div>
+        <div class="service-title">${esc(s.title)}</div>
+        ${s.sub ? `<div class="tile-sub">${esc(s.sub)}</div>` : ""}
+      </div>
+      <div class="service-short">${esc(s.short)}</div>
+      <div class="service-foot">
+        <div class="service-price">${esc(s.price)}</div>
+        <div class="service-open" data-label>${esc(s.openLabel || "Что входит и цены ↓")}</div>
+      </div>
+    </div>
+    <div class="service-more">
+      ${s.card ? `<img class="tile-card" src="${esc(s.card)}" alt="${esc(s.sub || s.title)}" loading="lazy">` : ""}
+      ${s.text ? `<p>${esc(s.text)}</p>` : ""}
+      ${s.options ? `<div class="opts">${s.options.map(o => o.length === 3
+        ? `<div class="opt"><span>${esc(o[0])}<small>${esc(o[1])}</small></span><b>${esc(o[2])}</b></div>`
+        : `<div class="opt"><span>${esc(o[0])}</span><b>${esc(o[1])}</b></div>`).join("")}</div>` : ""}
+      ${s.details ? `<div class="more-label">Что входит</div><ul>${s.details.map(d => `<li>${esc(d)}</li>`).join("")}</ul>` : ""}
+      <button class="btn" data-url="${esc(messageUrl(s.ask || "Привет! Интересует: " + s.title))}">${esc(s.button)}</button>
+    </div>
+  </div>`;
+}
+
+function render() {
+  const c = CONFIG, r = c.remote, g = c.game;
+  document.getElementById("app").innerHTML = `
+    <header class="hero">
+      ${satinSvg()}
+      <div class="hero-stage">
+        <div class="hero-top">
+          <div class="hero-badges">${c.hero.badges.map(b => `<span class="hero-badge">${icon(b.icon)}${esc(b.text)}</span>`).join("")}</div>
+          <h1 class="hero-title">${c.hero.title}</h1>
+        </div>
+        ${swirlSvg()}
+        <div class="hero-figure"><picture><source srcset="${esc(c.hero.photo)}" type="image/webp"><img src="${esc(c.hero.photoFallback)}" alt="${esc(c.hero.name)}"></picture></div>
+        <div class="desk" aria-hidden="true">${laptopSvg(c.hero.laptop)}</div>
+        ${c.hero.messages.map((m, i) => `<div class="pop p${i + 1}" aria-hidden="true"><div class="ava${m.gold ? " gold" : ""}">${esc(m.ava)}</div><div><small>${esc(m.from)}</small>${esc(m.text)}</div></div>`).join("")}
+        <div class="hero-name"><b>${esc(c.hero.name)}</b><span>${esc(c.hero.role)}</span></div>
+      </div>
+    </header>
+    <p class="about">${c.hero.about}</p>
+
+    <nav class="nav">
+      <a class="chip hot" data-go="game">Барабан скидок</a>
+      <a class="chip" data-go="services">Услуги</a>
+      <a class="chip" data-go="cases">Кейсы</a>
+      <a class="chip" data-go="reviews">Отзывы</a>
+      <a class="chip" data-go="remote">Удалёнка</a>
+      <a class="chip" data-go="useful">Полезное</a>
+    </nav>
+
+    <div class="game-wrap" id="game">
+      <div class="game">
+        <h3>${g.title}</h3>
+        <p class="game-text">${esc(g.text)}</p>
+        <div class="machine" id="machine">
+          <div class="lamps t">${"<i></i>".repeat(12)}</div>
+          <div class="reels">${[0, 1, 2].map(i => `<div class="reel"><div class="strip" id="strip${i}"></div></div>`).join("")}</div>
+          <div class="lamps b">${"<i></i>".repeat(12)}</div>
+        </div>
+        <div class="attempts" id="attempts"></div>
+        <div class="game-status" id="status" aria-live="polite"></div>
+        <button class="btn spin-btn" id="spin">Крутить барабан</button>
+        <div id="result"></div>
+        <details class="rules"><summary>Условия игры ▾</summary><ul>${g.rules.map(x => `<li>${esc(x)}</li>`).join("")}</ul></details>
+        ${g.demo ? `<div class="demo">
+          <div class="demo-title">Это подсказка для просмотра, в готовом приложении её не будет. Можно просто крутить, а эти кнопки сразу покажут, как выглядит каждый исход:</div>
+          <div class="demo-row">
+            <button data-show="20">Показать выигрыш</button>
+            <button data-show="0">Показать проигрыш</button>
+            <button data-reset>Сыграть заново</button>
+          </div>
+        </div>` : ""}
+      </div>
+    </div>
+
+    <section id="services">
+      <h2>Мои <em>услуги</em></h2>
+      <p class="h2-note">Нажми на услугу, внутри всё, что входит, и цены.</p>
+      ${c.also.map(s => serviceCard(s, true)).join("")}
+      ${c.services.map(s => serviceCard(s)).join("")}
+      <p class="pay-note">${esc(c.payNote)}</p>
+    </section>
+
+    <section id="cases">
+      <h2>Кейсы: сколько заявок <em>принесла реклама</em></h2>
+      <p class="h2-note">Цифры из рекламных кабинетов моих клиентов ВКонтакте.</p>
+      ${c.cases.map(k => `<div class="case">
+        <div class="case-head">${esc(k.head)}</div>
+        <div class="case-flow">
+          <div><small>потратили</small><div class="case-spent">${esc(k.spent)}</div></div>
+          <div class="case-arrow" aria-hidden="true">→</div>
+          <div><small>получили</small><div class="case-got">${esc(k.got)}</div></div>
+        </div>
+        <div class="case-note">${esc(k.note)}</div>
+      </div>`).join("")}
+      <p class="cases-note">${esc(c.casesNote)}</p>
+      ${c.caseLinks.map(l => `<a class="link-row" data-url="${esc(l.url)}">${esc(l.label)}</a>`).join("")}
+    </section>
+
+    <section id="reviews">
+      <h2>Что <em>пишут</em></h2>
+      <p class="h2-note">Листай вбок. [Имена и разрешение: спросить у Маши]</p>
+      <div class="reviews">
+        ${c.reviews.map(x => `<div class="review"><div class="quote">“</div><p>${esc(x.text)}</p><div class="who">${esc(x.who)}</div></div>`).join("")}
+      </div>
+    </section>
+
+    <section class="remote" id="remote">
+      <div class="remote-head">
+        <div class="remote-photo"><img src="${esc(r.photo)}" alt="Мария" loading="lazy"></div>
+        <h2>${r.title}</h2>
+      </div>
+      <p class="remote-text">${esc(r.text)}</p>
+      <div class="key-offer" data-url="${esc(messageUrl(r.key.message))}">
+        <svg viewBox="0 0 56 30" aria-hidden="true"><g fill="none" stroke="url(#goldKey)" stroke-width="4" stroke-linecap="round"><circle cx="13" cy="15" r="9.5"/><path d="M23 15h29M44 15v8M36 15v6"/></g></svg>
+        <div><b>${esc(r.key.title)}</b><span>${esc(r.key.text)}</span></div>
+      </div>
+      <div class="tariffs-title">${esc(r.tariffsTitle)}</div>
+      ${r.tariffs.map(t => serviceCard({ ...t, openLabel: "Смотреть, что внутри ↓", button: r.button, ask: "Привет! Интересует: " + t.sub }, true)).join("")}
+      <button class="btn ghost" style="margin-top:6px" data-url="${esc(messageUrl(r.message))}">Пока не знаю, что выбрать</button>
+    </section>
+
+    <section id="useful">
+      <h2>Полезное <em>почитать</em></h2>
+      <p class="h2-note">Посты откроются в канале ↗</p>
+      ${c.useful.map(u => `
+        <div class="useful-group">${esc(u.title)}</div>
+        <div class="list">
+          ${u.items.map(p => `<div class="item" data-url="${esc(p.url)}">
+            <div class="item-icon">${icon(p.icon)}</div>
+            <div class="item-main"><div class="item-title">${esc(p.title)}</div><div class="item-desc">${esc(p.desc)}</div></div>
+            <div class="item-arrow">›</div>
+          </div>`).join("")}
+        </div>`).join("")}
+    </section>
+
+    <footer>
+      <p>${esc(c.footerNote)}</p>
+      <p>${c.footerLinks.map(l => `<a data-url="${esc(l.url)}">${esc(l.label)}</a>`).join(" · ")}</p>
+    </footer>
+
+    <div class="sticky-cta"><button class="btn" data-url="${esc(c.bookingUrl)}">${esc(c.bookingLabel)}</button></div>
+  `;
+  markTodos(document.getElementById("app"));
+}
+
+/* --------- Барабан ---------
+   Результат выбирается ДО вращения и сразу сохраняется, поэтому закрыть приложение
+   посреди кручения и вернуть попытку нельзя. В Telegram всё лежит в облаке (CloudStorage),
+   у каждого человека своё, переустановка не помогает. В обычном браузере такой памяти нет,
+   поэтому с demo: false играть можно только внутри Telegram. */
+const G = CONFIG.game;
+const STORE_KEY = "game_" + G.gameId;
+const REEL_H = 86;
+let state = { left: G.attempts, win: null, played: false };
+let forced = null; // только для просмотра: что выпадет на следующем кручении
+let spinning = false;
+let chosenService = null;
+
+const cloud = inTelegram && tg.isVersionAtLeast && tg.isVersionAtLeast("6.9") && tg.CloudStorage;
+
+function loadState() {
+  return new Promise(resolve => {
+    const local = () => { try { return JSON.parse(localStorage.getItem(STORE_KEY)); } catch (e) { return null; } };
+    if (!cloud) return resolve(local());
+    cloud.getItem(STORE_KEY, (err, val) => {
+      if (err || !val) return resolve(local());
+      try { resolve(JSON.parse(val)); } catch (e) { resolve(local()); }
+    });
+  });
+}
+function saveState() {
+  const s = JSON.stringify(state);
+  try { localStorage.setItem(STORE_KEY, s); } catch (e) {}
+  if (cloud) cloud.setItem(STORE_KEY, s);
+}
+
+function pickOutcome() {
+  if (forced !== null) { const f = forced; forced = null; return f; }
+  let r = Math.random();
+  for (const p of G.symbols) { if (r < G.odds[p]) return p; r -= G.odds[p]; }
+  return 0;
+}
+function rnd(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function faces(outcome) {
+  if (outcome) return [outcome, outcome, outcome];
+  // Не совпало: случайные числа, но не три одинаковых
+  let f;
+  do { f = [rnd(G.symbols), rnd(G.symbols), rnd(G.symbols)]; } while (f[0] === f[1] && f[1] === f[2]);
+  return f;
+}
+const symHtml = p => `<div class="sym s${p}">${p}%</div>`;
+
+function setStrip(i, target, long) {
+  const strip = document.getElementById("strip" + i);
+  const before = [];
+  const count = long ? 14 + i * 6 : 0;
+  for (let k = 0; k < count; k++) before.push(rnd(G.symbols));
+  strip.style.transition = "none";
+  strip.style.transform = "translateY(0)";
+  strip.innerHTML = [...before, target].map(symHtml).join("");
+  return { strip, distance: count * REEL_H };
+}
+
+function userTag() {
+  const u = inTelegram && tg.initDataUnsafe && tg.initDataUnsafe.user;
+  if (!u) return "твой ник в Telegram";
+  return u.username ? "@" + u.username : [u.first_name, u.last_name].filter(Boolean).join(" ");
+}
+function makeCode(percent) {
+  const u = inTelegram && tg.initDataUnsafe && tg.initDataUnsafe.user;
+  const base = u ? u.id : Math.floor(Math.random() * 1e9);
+  return "OBH-" + percent + "-" + Number(base).toString(36).toUpperCase().slice(-5);
+}
+const dateText = ts => new Date(ts).toLocaleDateString("ru-RU", { day: "numeric", month: "long" });
+
+function renderGame() {
+  document.getElementById("attempts").innerHTML = `Попытки ${Array.from({ length: G.attempts }, (_, i) => keySvg(i < state.left ? "" : "used")).join("")}`;
+  const btn = document.getElementById("spin");
+  const result = document.getElementById("result");
+  const machine = document.getElementById("machine");
+  machine.classList.toggle("won", !!state.win);
+
+  if (!inTelegram && !G.demo) {
+    btn.style.display = "none";
+    result.innerHTML = `<div class="sorry"><h4>Играть можно в Telegram</h4><p>Так барабан запомнит твои попытки.</p></div>`;
+    return;
+  }
+  if (state.win) {
+    btn.style.display = "none";
+    const expired = Date.now() > state.win.until;
+    const services = [...CONFIG.also, ...CONFIG.services];
+    result.innerHTML = expired
+      ? `<div class="sorry"><h4>Срок скидки закончился</h4><p>Она действовала до ${esc(dateText(state.win.until))}. Напиши мне, если всё ещё актуально.</p></div>`
+      : `<div class="coupon">
+          <div class="coupon-label">Твоя скидка</div>
+          <div class="coupon-sum">${state.win.percent}%</div>
+          <div class="coupon-rows">
+            <div>Для кого: <b>${esc(userTag())}</b></div>
+            <div>Код: <b>${esc(state.win.code)}</b></div>
+            <div>Действует до <b>${esc(dateText(state.win.until))}</b></div>
+          </div>
+          <div class="coupon-pick">На какую услугу возьмёшь?</div>
+          <div class="picks">${services.map(s => `<button class="pick${chosenService === s.id ? " on" : ""}" data-pick="${esc(s.id)}">${esc(s.title)}</button>`).join("")}</div>
+          <button class="btn" data-claim>Написать Маше</button>
+          <div class="coupon-hint">Сделай скриншот этого экрана и пришли вместе с сообщением.</div>
+        </div>`;
+    return;
+  }
+  if (state.left <= 0) {
+    const k = G.consolation;
+    btn.style.display = "none";
+    result.innerHTML = `<div class="sorry"><h4>${esc(k.title)}</h4><p>${esc(k.text)}</p>
+      <button class="btn" data-url="${esc(messageUrl(k.message))}">${esc(k.button)}</button></div>`;
+    return;
+  }
+  btn.style.display = "";
+  result.innerHTML = "";
+}
+
+function plural(n) { return n === 1 ? "попытка" : "попытки"; }
+
+function spin() {
+  if (spinning || state.left <= 0 || state.win) return;
+  spinning = true;
+  haptic();
+  const status = document.getElementById("status");
+  const btn = document.getElementById("spin");
+  const machine = document.getElementById("machine");
+  status.textContent = "";
+  btn.disabled = true;
+  machine.classList.add("spinning");
+
+  const outcome = pickOutcome();
+  const shown = faces(outcome);
+  state.left -= 1;
+  state.played = true;
+  if (outcome) {
+    state.win = { percent: outcome, code: makeCode(outcome), until: Date.now() + G.daysValid * 864e5 };
+  }
+  saveState(); // сохраняем сразу, до окончания анимации
+  document.getElementById("attempts").innerHTML = `Попытки ${Array.from({ length: G.attempts }, (_, i) => keySvg(i < state.left ? "" : "used")).join("")}`;
+
+  const calm = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const times = calm ? [300, 400, 500] : [1100, 1600, 2200];
+  shown.forEach((target, i) => {
+    const { strip, distance } = setStrip(i, target, !calm);
+    strip.getBoundingClientRect(); // чтобы браузер применил начальное положение
+    strip.style.transition = `transform ${times[i]}ms cubic-bezier(.16,.84,.28,1)`;
+    strip.style.transform = `translateY(-${distance}px)`;
+  });
+
+  setTimeout(() => {
+    spinning = false;
+    btn.disabled = false;
+    machine.classList.remove("spinning");
+    if (state.win) {
+      haptic("win");
+      status.textContent = "Есть совпадение!";
+    } else if (state.left > 0) {
+      status.textContent = `Не совпало. Осталось ${state.left} ${plural(state.left)}.`;
+    } else {
+      status.textContent = "";
+    }
+    renderGame();
+    if (state.win || state.left <= 0) document.getElementById("result").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, times[2] + 80);
+}
+
+// Кнопки «Показать выигрыш / проигрыш»: начинаем заново и сразу крутим до нужного исхода
+function showOutcome(percent) {
+  if (spinning) return;
+  resetGame();
+  if (percent) { forced = percent; spin(); return; }
+  state.left = 1; // проигрыш показываем с последней попытки, чтобы сразу был экран с утешением
+  forced = 0;
+  spin();
+}
+function resetGame() {
+  state = { left: G.attempts, win: null, played: false };
+  chosenService = null;
+  saveState();
+  document.getElementById("status").textContent = "";
+  setInitialFaces();
+  renderGame();
+}
+function setInitialFaces() { [30, 20, 10].forEach((p, i) => setStrip(i, p, false)); }
+
+function bindEvents() {
+  document.getElementById("spin").addEventListener("click", spin);
+  document.addEventListener("click", e => {
+    const claim = e.target.closest("[data-claim]");
+    if (claim) {
+      const svc = [...CONFIG.also, ...CONFIG.services].find(s => s.id === chosenService);
+      const what = svc ? ` на «${svc.title}»` : "";
+      openUrl(messageUrl(`Привет! Мне выпала скидка ${state.win.percent}%${what}. Код ${state.win.code}.`));
+      return;
+    }
+    const pick = e.target.closest("[data-pick]");
+    if (pick) { haptic(); chosenService = pick.dataset.pick; renderGame(); return; }
+    const show = e.target.closest("[data-show]");
+    if (show) { showOutcome(+show.dataset.show); return; }
+    if (e.target.closest("[data-reset]")) { resetGame(); return; }
+
+    const link = e.target.closest("[data-url]");
+    if (link) { e.stopPropagation(); openUrl(link.dataset.url); return; }
+
+    const go = e.target.closest("[data-go]");
+    if (go) { haptic(); document.getElementById(go.dataset.go).scrollIntoView({ behavior: "smooth" }); return; }
+
+    if (e.target.closest(".service-more")) return;
+    const card = e.target.closest("[data-service]");
+    if (card) {
+      haptic();
+      const open = card.classList.toggle("open");
+      const label = card.querySelector("[data-label]");
+      if (!label.dataset.closed) label.dataset.closed = label.textContent;
+      label.textContent = open ? "Свернуть ↑" : label.dataset.closed;
+    }
+  });
+}
+
+function initTelegram() {
+  if (!inTelegram) return;
+  document.body.classList.add("in-tg");
+  tg.ready();
+  tg.expand();
+  const css = getComputedStyle(document.documentElement);
+  const bg = css.getPropertyValue("--bg").trim();
+  tg.setHeaderColor(bg);
+  tg.setBackgroundColor(bg);
+  tg.MainButton.setParams({
+    text: CONFIG.bookingLabel,
+    color: css.getPropertyValue("--main-btn").trim(),
+    text_color: css.getPropertyValue("--main-btn-text").trim(),
+  });
+  tg.MainButton.onClick(() => openUrl(CONFIG.bookingUrl));
+  tg.MainButton.show();
+}
+
+// Счётчик на экране ноутбука: растёт, когда очередная заявка опускается в экран
+function startLaptop() {
+  const num = document.getElementById("lap-num");
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const { start: first } = CONFIG.hero.laptop;
+  let n = first;
+  const tick = () => {
+    n = n >= first + 30 ? first : n + 1;
+    num.textContent = n;
+    num.classList.remove("bump");
+    void num.offsetWidth;
+    num.classList.add("bump");
+  };
+  setTimeout(() => { tick(); setInterval(tick, 3000); }, 400 + 2900); // 31% от 9 секунд после задержки первой заявки
+}
+
+async function start() {
+  render();
+  bindEvents();
+  initTelegram();
+  startLaptop();
+  setInitialFaces();
+  const btn = document.getElementById("spin");
+  btn.disabled = true;
+  const saved = await loadState();
+  if (saved) state = saved;
+  btn.disabled = false;
+  renderGame();
+}
+start();
+</script>
+</body>
+</html>
