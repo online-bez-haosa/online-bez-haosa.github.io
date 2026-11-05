@@ -78,7 +78,7 @@
   @keyframes drift { from { transform: rotate(-2deg) translateX(-6px); } to { transform: rotate(2.5deg) translateX(8px); } }
 
   /* Рабочее место справа: ноутбук, в него прилетают заявки */
-  .desk { position: absolute; right: -6px; bottom: 26px; z-index: 1; width: 272px; animation: rise 1s .35s cubic-bezier(.2,.8,.3,1) backwards; }
+  .desk { position: absolute; right: -6px; bottom: 26px; z-index: 3; width: 272px; animation: rise 1s .35s cubic-bezier(.2,.8,.3,1) backwards; }
   .desk svg { display: block; width: 100%; height: auto; overflow: visible; }
   .lap-num { font-family: "Playfair Display", Georgia, serif; font-size: 36px; font-weight: 700; fill: #F3DFB9; }
   .lap-num.bump { animation: flash .6s ease; }
@@ -89,7 +89,7 @@
 
   /* Заявки прилетают сверху и опускаются в экран */
   .pop {
-    position: absolute; right: 12px; top: 196px; z-index: 4; width: 176px; display: flex; gap: 8px; align-items: center;
+    position: absolute; right: 12px; top: 196px; z-index: 5; width: 176px; display: flex; gap: 8px; align-items: center;
     padding: 7px 10px 7px 7px; border-radius: 15px; background: rgba(255, 251, 244, .97);
     box-shadow: 0 10px 22px rgba(70, 45, 20, .22); font-size: 12.5px; line-height: 1.25; font-weight: 600;
     opacity: 0; animation: fly 9s infinite;
@@ -108,7 +108,7 @@
   }
 
   /* Подпись возле фото */
-  .hero-name { position: absolute; left: 14px; bottom: 16px; z-index: 3; padding: 6px 14px 8px; border-radius: 16px; line-height: 1; background: rgba(255, 251, 244, .94); box-shadow: 0 10px 24px rgba(70, 45, 20, .2); }
+  .hero-name { position: absolute; left: 14px; bottom: 16px; z-index: 4; padding: 6px 14px 8px; border-radius: 16px; line-height: 1; background: rgba(255, 251, 244, .94); box-shadow: 0 10px 24px rgba(70, 45, 20, .2); }
   .hero-name b { display: block; font-family: "Marck Script", cursive; font-size: 30px; font-weight: 400; color: var(--gold-deep); }
   .hero-name span { display: block; margin-top: 2px; font-size: 12.5px; font-weight: 700; }
 
@@ -343,7 +343,7 @@ const CONFIG = {
       { ava: "А", from: "Анна, 3:14 ночи", text: "Сколько стоит?" },
       { ava: "О", from: "Ольга", text: "Хочу записаться" },
     ],
-    laptop: { label: "Новые заявки", start: 12, bot: "бот отвечает" },
+    laptop: { label: "Новые заявки", start: 12, bot: "бот уже отвечает" },
     photo: "photo.webp",
     photoFallback: "photo.png",
     about: "Настраиваю рекламу так, чтобы тебе писали, и делаю <b>чат-ботов, которые отвечают клиентам</b>, пока ты занята другим. Человек получает ответ сразу, а не остывает, пока ждёт два часа. Не знаешь, с чего начать? Напиши, вместе посмотрим.",
@@ -436,12 +436,12 @@ const CONFIG = {
     ] },
   ],
 
-  /* ---------- Отзывы. Тексты из канала, разрешение и имена спросить у Маши ---------- */
+  /* ---------- Отзывы. Тексты и имена из канала (посты 74, 78, 77, 97, «переслано от»), разрешение спрашивает Инна у Маши ---------- */
   reviews: [
-    { text: "Столько всего можно собрать в одном месте, чтобы клиенту было легко разобраться, а мне не приходилось каждый раз всё объяснять вручную.", who: "Чат-бот" },
-    { text: "Очень понравилось работать с тобой: всё сделано качественно, понятно и красиво. Бот получился реально классный и сильно помогает в группе.", who: "Чат-бот для сообщества ВК" },
-    { text: "Я очень долго выбирала среди специалистов и ни разу не пожалела, что доверилась тебе. Теперь всем буду советовать только тебя.", who: "Продающий чат-бот" },
-    { text: "Если бы не ты, я так и сливала бы свой бюджет. Сегодня реклама крутится, плюсики идут. Я счастлива.", who: "Реклама" },
+    { text: "Столько всего можно собрать в одном месте, чтобы клиенту было легко разобраться, а мне не приходилось каждый раз всё объяснять вручную.", who: "Алина, чат-бот" },
+    { text: "Очень понравилось работать с тобой: всё сделано качественно, понятно и красиво. Бот получился реально классный и сильно помогает в группе.", who: "Links_G, чат-бот для сообщества ВК" },
+    { text: "Я очень долго выбирала среди специалистов и ни разу не пожалела, что доверилась тебе. Теперь всем буду советовать только тебя.", who: "Анна, продающий чат-бот" },
+    { text: "Если бы не ты, я так и сливала бы свой бюджет. Сегодня реклама крутится, плюсики идут. Я счастлива.", who: "Есения, реклама" },
   ],
 
   /* ---------- Удалёнка ---------- */
@@ -525,7 +525,7 @@ const ICONS = {
 };
 const icon = name => `<svg viewBox="0 0 40 40" aria-hidden="true">${ICONS[name] || ""}</svg>`;
 
-/* --------- Ноутбук ровно, спереди. Левая часть экрана уходит за Машу, поэтому надписи стоят правее --------- */
+/* --------- Ноутбук ровно, спереди. Стоит перед Машей и закрывает часть руки --------- */
 function laptopSvg(l) {
   // Ряды клавиш: симметричные, ближний ряд чуть шире
   let keys = "";
@@ -544,16 +544,16 @@ function laptopSvg(l) {
     <rect x="20" y="2" width="200" height="124" rx="9" fill="url(#lapMetal)"/>
     <rect x="25" y="7" width="190" height="114" rx="5" fill="url(#lapScreen)"/>
     <circle cx="120" cy="4.6" r="1" fill="#6E5236"/>
-    <text class="lap-label" x="121" y="31">${esc(l.label)}</text>
-    <text class="lap-num" id="lap-num" x="120" y="72">${esc(l.start)}</text>
+    <text class="lap-label" x="44" y="31">${esc(l.label)}</text>
+    <text class="lap-num" id="lap-num" x="43" y="72">${esc(l.start)}</text>
     <g fill="#E9CFA0">
-      <rect x="168" y="60" width="7" height="12" rx="2" opacity=".45"/>
-      <rect x="177" y="52" width="7" height="20" rx="2" opacity=".6"/>
-      <rect x="186" y="44" width="7" height="28" rx="2" opacity=".8"/>
-      <rect x="195" y="34" width="7" height="38" rx="2"/>
+      <rect x="150" y="60" width="9" height="12" rx="2" opacity=".45"/>
+      <rect x="162" y="52" width="9" height="20" rx="2" opacity=".6"/>
+      <rect x="174" y="44" width="9" height="28" rx="2" opacity=".8"/>
+      <rect x="186" y="34" width="9" height="38" rx="2"/>
     </g>
-    <circle class="lap-dot" cx="124" cy="93" r="3"/>
-    <text class="lap-bot" x="131" y="97">${esc(l.bot)}</text>
+    <circle class="lap-dot" cx="47" cy="93" r="3"/>
+    <text class="lap-bot" x="55" y="97">${esc(l.bot)}</text>
     <polygon points="20,126 220,126 236,158 4,158" fill="url(#lapDeck)"/>
     ${keys}
     <path d="M4 158h232v2a6 6 0 0 1-6 6H10a6 6 0 0 1-6-6z" fill="#A98757"/>
@@ -687,7 +687,7 @@ function render() {
 
     <section id="reviews">
       <h2>Что <em>пишут</em></h2>
-      <p class="h2-note">Листай вбок. [Имена и разрешение: спросить у Маши]</p>
+      <p class="h2-note">Листай вбок.</p>
       <div class="reviews">
         ${c.reviews.map(x => `<div class="review"><div class="quote">“</div><p>${esc(x.text)}</p><div class="who">${esc(x.who)}</div></div>`).join("")}
       </div>
