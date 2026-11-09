@@ -339,6 +339,9 @@
 
   /* ===== Кейсы: потратили → получили ===== */
   .case { padding: 14px; margin-bottom: 10px; border-radius: 18px; background: var(--card); border: 1px solid var(--line); }
+  .case[data-url] { cursor: pointer; transition: transform .15s; }
+  .case[data-url]:active { transform: scale(.98); }
+  .case-link { margin-top: 10px; font-size: 13px; font-weight: 700; color: var(--gold-deep); }
   .case-head { font-size: 12.5px; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
   .case-flow { display: grid; grid-template-columns: 1fr 22px 1fr; align-items: center; gap: 6px; }
   .case-flow small { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 1px; }
@@ -504,11 +507,11 @@ const CONFIG = {
 
   /* ---------- Кейсы ---------- */
   cases: [
-    { head: "За 1 день", spent: "2 507 ₽", got: "95 заявок", note: "Заявка вышла примерно в 26 ₽. Многие считают такой бюджет слишком маленьким для таргета." },
-    { head: "Тестовый запуск", spent: "1 844 ₽", got: "37 заявок", sales: "5 продаж на 29 860 ₽", note: "Заявка вышла в 49 ₽, а продажи вернули потраченное на рекламу в 16 раз." },
-    { head: "За 2 дня", spent: "10 200 ₽", got: "365 заявок", sales: "12 продаж", note: "Заявка вышла примерно в 28 ₽." },
-    { head: "На минимальном бюджете", spent: "2 100 ₽", got: "36 заявок", sales: "3 продажи", note: "Заявка вышла примерно в 58 ₽. Говорят, что на таком бюджете заявок нет совсем." },
-    { head: "За 2 недели", spent: "59 000 ₽", got: "1 104 заявки", sales: "19 продаж", note: "Заявка вышла в 53,85 ₽." },
+    { head: "За 1 день", post: 80, spent: "2 507 ₽", got: "95 заявок", note: "Заявка вышла примерно в 26 ₽. Многие считают такой бюджет слишком маленьким для таргета." },
+    { head: "Тестовый запуск", post: 93, spent: "1 844 ₽", got: "37 заявок", sales: "5 продаж на 29 860 ₽", note: "Заявка вышла в 49 ₽, а продажи вернули потраченное на рекламу в 16 раз." },
+    { head: "За 2 дня", post: 81, spent: "10 200 ₽", got: "365 заявок", sales: "12 продаж", note: "Заявка вышла примерно в 28 ₽." },
+    { head: "На минимальном бюджете", post: 103, spent: "2 100 ₽", got: "36 заявок", sales: "3 продажи", note: "Заявка вышла примерно в 58 ₽. Говорят, что на таком бюджете заявок нет совсем." },
+    { head: "За 2 недели", post: 82, spent: "59 000 ₽", got: "1 104 заявки", sales: "19 продаж", note: "Заявка вышла в 53,85 ₽." },
   ],
   caseLinks: [
     { label: "Все кейсы по рекламе ↗", url: CH + "/79" },
@@ -858,7 +861,7 @@ function render() {
     <section id="cases">
       <h2>Кейсы: сколько заявок <em>принесла реклама</em></h2>
       <p class="h2-note">Цифры из рекламных кабинетов моих клиентов ВКонтакте.</p>
-      ${c.cases.map(k => `<div class="case">
+      ${c.cases.map(k => `<div class="case"${k.post ? ` data-url="${esc(CH + "/" + k.post)}"` : ""}>
         <div class="case-head">${esc(k.head)}</div>
         <div class="case-flow">
           <div><small>потратили</small><div class="case-spent">${esc(k.spent)}</div></div>
@@ -867,6 +870,7 @@ function render() {
         </div>
         ${k.sales ? `<div class="case-sales">${esc(k.sales)}</div>` : ""}
         <div class="case-note">${esc(k.note)}</div>
+        ${k.post ? `<div class="case-link">Смотреть пост в канале ↗</div>` : ""}
       </div>`).join("")}
       ${c.caseLinks.map(l => `<a class="link-row" data-url="${esc(l.url)}">${esc(l.label)}</a>`).join("")}
     </section>
