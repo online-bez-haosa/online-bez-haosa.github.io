@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<title>Мария · реклама и чат-боты</title>
+<title>Мария · реклама ВКонтакте</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -77,15 +77,92 @@
   }
   @keyframes drift { from { transform: rotate(-2deg) translateX(-6px); } to { transform: rotate(2.5deg) translateX(8px); } }
 
-  /* Рабочее место справа: ноутбук, в него прилетают заявки */
-  .desk { position: absolute; right: -6px; bottom: 26px; z-index: 3; width: 272px; animation: rise 1s .35s cubic-bezier(.2,.8,.3,1) backwards; }
-  .desk svg { display: block; width: 100%; height: auto; overflow: visible; }
-  .lap-num { font-family: "Playfair Display", Georgia, serif; font-size: 36px; font-weight: 700; fill: #F3DFB9; }
-  .lap-num.bump { animation: flash .6s ease; }
-  .lap-label { font-size: 11px; font-weight: 600; fill: #D8C4A6; }
-  .lap-bot { font-size: 10.5px; font-weight: 600; fill: #E8DAC7; }
-  .lap-dot { fill: #E9CFA0; animation: lamp 1.2s infinite; }
-  @keyframes flash { 40% { fill: #FFFFFF; } }
+  /* Телефон с рекламным кабинетом справа: заявки опускаются в экран, цифры растут.
+     Три стиля: CONFIG.hero.phone.style или ?phone= в адресе (a светлый кабинет, b тёмный, c экран блокировки) */
+  .phone {
+    position: absolute; right: 18px; bottom: 30px; z-index: 3; width: 148px; height: 302px; padding: 3px; border-radius: 31px;
+    background: var(--ph-frame);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .5), inset 0 0 0 2px rgba(0, 0, 0, .12), 0 30px 40px -16px rgba(60, 38, 16, .6), 0 8px 16px rgba(60, 38, 16, .2);
+    animation: rise 1s .35s cubic-bezier(.2,.8,.3,1) backwards;
+  }
+  .ph-btn { position: absolute; width: 3px; border-radius: 2px; background: var(--ph-btn); box-shadow: inset 0 0 0 .5px rgba(0, 0, 0, .2); }
+  .ph-btn.a { left: -2px; top: 60px; height: 15px; }
+  .ph-btn.v1 { left: -2px; top: 86px; height: 27px; }
+  .ph-btn.v2 { left: -2px; top: 119px; height: 27px; }
+  .ph-btn.p { right: -2px; top: 98px; height: 42px; }
+  .ph-bezel { height: 100%; padding: 3px; border-radius: 28px; background: #0B0908; }
+  .ph-screen { position: relative; height: 100%; overflow: hidden; border-radius: 25px; background: var(--ph-screen); color: var(--ph-ink); font-size: 9px; line-height: 1.25; }
+  .ph-screen::after { content: ""; position: absolute; inset: 0; z-index: 10; pointer-events: none; background: linear-gradient(118deg, rgba(255, 255, 255, .24) 0%, rgba(255, 255, 255, .05) 30%, rgba(255, 255, 255, 0) 31%, rgba(255, 255, 255, 0) 100%); }
+  .ph-island { position: absolute; top: 7px; left: 50%; z-index: 11; width: 38px; height: 11px; margin-left: -19px; border-radius: 6px; background: #000; }
+  .ph-status { display: flex; justify-content: space-between; align-items: center; height: 25px; padding: 1px 12px 0 17px; font-size: 9px; font-weight: 700; }
+  .ph-status svg { width: 30px; height: 9px; fill: currentColor; }
+  .ph-app { padding: 2px 7px 0; }
+  .ph-head { display: flex; justify-content: space-between; align-items: baseline; margin: 2px 2px 6px; }
+  .ph-head b { font-size: 12px; font-weight: 700; }
+  .ph-head span { font-size: 8px; font-weight: 600; opacity: .7; }
+  .ph-card { padding: 6px 7px 7px; border-radius: 11px; background: var(--ph-card); box-shadow: var(--ph-card-shadow); }
+  .ph-card small, .ph-lines small { display: block; font-size: 7.5px; font-weight: 600; opacity: .65; }
+  .ph-card b { display: block; font-size: 11px; font-weight: 700; white-space: nowrap; }
+  .ph-big { display: flex; align-items: center; gap: 5px; margin: 1px 0 3px; }
+  .ph-big [data-ph="leads"] { font-family: "Playfair Display", Georgia, serif; font-size: 27px; font-weight: 700; line-height: 1; color: var(--ph-num); }
+  .ph-plus { padding: 2px 5px; border-radius: 8px; font-style: normal; font-size: 8px; font-weight: 700; color: #3F7A3A; background: rgba(95, 160, 85, .16); opacity: 0; }
+  .ph-plus.on { animation: phPlus 1.6s ease; }
+  @keyframes phPlus { 0% { opacity: 0; transform: translateY(4px); } 15%, 70% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+  .ph-chart { display: block; width: 100%; height: auto; overflow: visible; }
+  .ph-chart path { transition: d .8s ease; }
+  .ph-chart circle { transition: cx .8s ease, cy .8s ease; }
+  .ph-row { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin: 5px 0; }
+  .ph-ad { display: flex; align-items: center; gap: 6px; }
+  .ph-ad b { font-size: 9px; }
+  .ph-live { flex: none; width: 6px; height: 6px; border-radius: 50%; background: #5FA055; box-shadow: 0 0 0 0 rgba(95, 160, 85, .5); animation: phLive 1.8s infinite; }
+  @keyframes phLive { 70% { box-shadow: 0 0 0 5px rgba(95, 160, 85, 0); } 100% { box-shadow: 0 0 0 0 rgba(95, 160, 85, 0); } }
+  .ph-bump { display: inline-block; animation: phBump .7s ease; }
+  @keyframes phBump { 35% { transform: scale(1.14); } }
+
+  /* B: тёмный кабинет, кольцо и столбики */
+  .ph-on { display: flex; align-items: center; gap: 4px; }
+  .ph-ring { position: relative; width: 104px; margin: 4px auto 6px; }
+  .ph-ring svg { display: block; width: 100%; height: auto; }
+  .ph-ring circle[data-ph="ring"] { transition: stroke-dashoffset .8s ease; }
+  .ph-ring > div { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
+  .ph-ring [data-ph="leads"] { font-family: "Playfair Display", Georgia, serif; font-size: 30px; font-weight: 700; line-height: 1; color: var(--ph-num); }
+  .ph-ring small { font-size: 7.5px; font-weight: 600; opacity: .7; }
+  .ph-bars { display: flex; align-items: flex-end; gap: 4px; height: 40px; margin: 0 4px; padding-bottom: 4px; border-bottom: 1px solid rgba(233, 207, 160, .18); }
+  .ph-bars i { flex: 1; border-radius: 3px 3px 1px 1px; background: rgba(233, 207, 160, .35); transition: height .8s ease; }
+  .ph-bars i:last-child { background: linear-gradient(180deg, #F3E2C1, #A67A3F); }
+  .ph-lines { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 8px 4px 0; }
+  .ph-lines b { display: block; font-size: 12px; font-weight: 700; color: var(--ph-num); white-space: nowrap; }
+
+  /* C: экран блокировки, сыплются уведомления */
+  .ph-lock { padding: 6px 6px 0; text-align: center; }
+  .ph-date { font-size: 8.5px; font-weight: 600; opacity: .85; }
+  .ph-time { margin: 0 0 6px; font-size: 44px; font-weight: 600; line-height: 1; letter-spacing: -.02em; }
+  .ph-widget { display: inline-flex; align-items: baseline; gap: 4px; padding: 3px 9px 4px; margin-bottom: 9px; border-radius: 10px; background: rgba(255, 248, 236, .22); font-size: 8px; font-weight: 600; }
+  .ph-widget [data-ph="leads"] { font-size: 12px; font-weight: 700; }
+  .ph-notes { display: grid; gap: 4px; text-align: left; }
+  .ph-note { display: flex; gap: 5px; align-items: center; padding: 5px 6px; border-radius: 11px; background: rgba(255, 250, 242, .8); color: #2E2118; box-shadow: 0 4px 10px rgba(40, 24, 10, .18); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+  .ph-note.in { animation: phNote .6s cubic-bezier(.2,.8,.3,1); }
+  .ph-note:nth-child(n+4) { display: none; }
+  .ph-note:nth-child(3) { opacity: .75; transform: scale(.96); }
+  .ph-note > div { flex: 1; min-width: 0; }
+  .ph-note b { display: block; font-size: 8px; font-weight: 700; }
+  .ph-note span { display: block; overflow: hidden; font-size: 7.5px; white-space: nowrap; text-overflow: ellipsis; opacity: .8; }
+  .ph-note em { align-self: flex-start; font-style: normal; font-size: 6.5px; opacity: .6; }
+  .ph-ic { flex: none; width: 17px; height: 17px; border-radius: 5px; display: grid; place-items: center; background: linear-gradient(135deg, #5B412C, #2E2118); }
+  .ph-ic svg { width: 11px; height: 11px; }
+  @keyframes phNote { from { opacity: 0; transform: translateY(-14px) scale(.9); } to { opacity: 1; transform: none; } }
+  [data-phone="c"] .pop { display: none; }
+
+  [data-phone="a"] .phone { --ph-frame: linear-gradient(135deg, #F5E8D0 0%, #C9A673 28%, #F8EDD8 50%, #A9855A 76%, #EAD6B2 100%); --ph-btn: #B9945F; --ph-screen: #FBF7F1; --ph-ink: #2E2118; --ph-num: #7A5226; --ph-card: #FFFFFF; --ph-card-shadow: 0 2px 6px rgba(80, 55, 25, .1); }
+  [data-phone="b"] .phone { --ph-frame: linear-gradient(135deg, #77706A 0%, #2F2A26 30%, #625A53 52%, #1E1A17 78%, #4E4741 100%); --ph-btn: #35302B; --ph-screen: radial-gradient(130% 70% at 50% 0%, #46311F 0%, #1A110C 72%); --ph-ink: #F3E6D2; --ph-num: #F3DFB9; }
+  [data-phone="c"] .phone { --ph-frame: linear-gradient(135deg, #F1E9DE 0%, #BDB09F 28%, #F6F0E7 50%, #9C8F7E 76%, #E2D8CA 100%); --ph-btn: #ADA08E; --ph-ink: #FFF8EC;
+    --ph-screen: radial-gradient(90% 55% at 15% 12%, rgba(243, 226, 193, .95) 0%, rgba(243, 226, 193, 0) 70%), radial-gradient(80% 50% at 95% 55%, rgba(166, 122, 63, .9) 0%, rgba(166, 122, 63, 0) 70%), linear-gradient(170deg, #C9A673 0%, #7A5530 50%, #2E2118 100%); }
+  [data-phone="c"] .ph-status { color: #FFF8EC; }
+  [data-phone="c"] .ph-status span { visibility: hidden; }
+  .ph-home { position: absolute; left: 50%; bottom: 5px; z-index: 11; width: 46px; height: 3px; margin-left: -23px; border-radius: 2px; background: var(--ph-ink); opacity: .55; }
+  .ph-lockbtns { position: absolute; left: 12px; right: 12px; bottom: 16px; display: flex; justify-content: space-between; }
+  .ph-lockbtns i { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: rgba(30, 20, 12, .35); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+  .ph-lockbtns svg { width: 11px; height: 11px; fill: none; stroke: #FFF8EC; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; }
 
   /* Заявки прилетают сверху и опускаются в экран */
   .pop {
@@ -103,8 +180,8 @@
   @keyframes fly {
     0% { opacity: 0; transform: translate(34px, -16px) scale(.9); }
     4%, 19% { opacity: 1; transform: none; }
-    31% { opacity: 1; transform: translateY(190px) scale(.82); }
-    35%, 100% { opacity: 0; transform: translateY(232px) scale(.4); }
+    31% { opacity: 1; transform: translateY(112px) scale(.78); }
+    35%, 100% { opacity: 0; transform: translateY(140px) scale(.4); }
   }
 
   /* Подпись возле фото */
@@ -122,6 +199,16 @@
   }
   .about { position: relative; margin-top: 14px; color: var(--about); font-size: 15px; line-height: 1.6; }
   .about b { color: var(--text); font-weight: 700; }
+
+  /* Крупные цифры под рассказом о себе */
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 16px; cursor: pointer; }
+  .stat { padding: 11px 10px 12px; border-radius: 18px; background: var(--card); border: 1px solid var(--line); }
+  .stat b { display: block; font-family: "Playfair Display", Georgia, serif; font-size: 25px; font-weight: 700; line-height: 1.05; color: var(--gold-deep); white-space: nowrap; }
+  .stat span { display: block; margin-top: 4px; font-size: 12px; line-height: 1.3; color: var(--about); }
+  .stat.wide { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: var(--btn); border-color: transparent; box-shadow: 0 12px 26px rgba(70, 45, 20, .22); }
+  .stat.wide b { font-size: 34px; color: var(--gold-light); }
+  .stat.wide span { margin: 0; font-size: 13px; color: #E8DAC7; }
+  .stats-more { grid-column: 1 / -1; font-size: 13px; font-weight: 700; color: var(--gold-deep); text-align: center; }
 
   .nav {
     position: sticky; top: 0; z-index: 5; display: flex; gap: 8px; overflow-x: auto;
@@ -258,6 +345,7 @@
   .case-spent { font-size: 19px; font-weight: 700; white-space: nowrap; }
   .case-arrow { color: var(--gold); font-size: 20px; font-weight: 700; text-align: center; }
   .case-got { font-family: "Playfair Display", Georgia, serif; font-size: 30px; font-weight: 700; line-height: 1.05; color: var(--gold-deep); white-space: nowrap; }
+  .case-sales { display: inline-block; margin-top: 8px; padding: 4px 10px; border-radius: 10px; background: #F1E3CC; font-size: 13px; font-weight: 700; color: var(--gold-deep); }
   .case-note { margin-top: 8px; font-size: 13.5px; color: var(--about); }
   .cases-note { margin-top: 2px; padding: 10px 12px; border-radius: 12px; background: #F4EADB; font-size: 13px; color: var(--about); }
   .link-row { display: block; margin-top: 10px; padding: 12px; text-align: center; border-radius: 14px; border: 1px solid rgba(166, 122, 63, .55); font-size: 14px; font-weight: 700; color: var(--gold-deep); cursor: pointer; }
@@ -280,6 +368,7 @@
   .reviews::-webkit-scrollbar { display: none; }
   .review { flex: none; width: 84%; display: flex; flex-direction: column; scroll-snap-align: center; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; }
   .review .quote { font-family: "Playfair Display", Georgia, serif; font-size: 44px; line-height: .7; height: 22px; color: var(--gold); }
+  .review:only-child { width: 100%; }
   .review p { flex: 1; font-size: 14px; }
   .review .who { margin-top: 10px; font-size: 12.5px; font-weight: 700; color: var(--gold-deep); }
 
@@ -306,7 +395,7 @@
 
   @media (prefers-reduced-motion: reduce) {
     .machine.spinning .lamps i { animation: none; opacity: 1; }
-    .hero-top, .hero-figure, .hero-figure img, .swirl, .hero-title em, .desk, .lap-dot, .lap-num.bump { animation: none; }
+    .hero-top, .hero-figure, .hero-figure img, .swirl, .hero-title em, .phone, .ph-live, .ph-bump, .ph-note.in, .ph-plus.on { animation: none; }
     .pop { animation: none; opacity: 0; }
     .pop.p1 { opacity: 1; }
   }
@@ -333,20 +422,37 @@ const CONFIG = {
   bookingLabel: "Написать мне",
 
   hero: {
-    badges: [{ icon: "target", text: "Реклама ВКонтакте" }, { icon: "chat", text: "Чат-боты" }],
-    title: "Привожу <em>клиентов</em>, а бот им отвечает",
+    badges: [{ icon: "target", text: "Реклама ВКонтакте" }, { icon: "route", text: "Кураторство" }],
+    title: "Реклама, после которой <em>пишут&nbsp;сами</em>",
     name: "Мария",
     role: "таргетолог",
-    // Заявки, которые по очереди прилетают в ноутбук. Это пример, не настоящая переписка и не настоящий счётчик
+    // Заявки, которые по очереди прилетают в телефон. Это пример, не настоящая переписка и не настоящий счётчик
     messages: [
       { ava: "+1", gold: true, from: "из рекламы ВК", text: "Новая заявка" },
       { ava: "А", from: "Анна, 3:14 ночи", text: "Сколько стоит?" },
       { ava: "О", from: "Ольга", text: "Хочу записаться" },
     ],
-    laptop: { label: "Новые заявки", start: 12, bot: "бот уже отвечает" },
+    // Телефон с рекламным кабинетом. Цифры как в кейсе «за 1 день»: заявка около 26 ₽, от 64 до 95 заявок и снова по кругу
+    phone: {
+      style: "a",  // a светлый кабинет, b тёмный кабинет, c экран блокировки с уведомлениями
+      start: 64, end: 95, cpl: 26.4,
+      notes: [
+        ["Новая заявка", "Ирина: «Сколько стоит?»"],
+        ["Новая заявка", "Ольга: «Хочу записаться»"],
+        ["Новая заявка", "Марина: «А есть рассрочка?»"],
+        ["Новая заявка", "Анна: «Ещё есть места?»"],
+        ["Новая заявка", "Света: «Расскажите подробнее»"],
+      ],
+    },
     photo: "photo.webp",
     photoFallback: "photo.png",
-    about: "Настраиваю рекламу так, чтобы тебе писали, и делаю <b>чат-ботов, которые отвечают клиентам</b>, пока ты занята другим. Человек получает ответ сразу, а не остывает, пока ждёт два часа. Не знаешь, с чего начать? Напиши, вместе посмотрим.",
+    about: "Настраиваю рекламу ВКонтакте так, чтобы люди <b>сами писали тебе в личку</b>, а бюджет не уходил в никуда. Начать можно и с небольшой суммы: у моей клиентки за 2 507 ₽ за один день пришло 95 заявок. Не знаешь, с чего начать? Напиши, вместе посмотрим.",
+    // Крупные цифры под текстом, все из кейсов в канале (посты 93, 82, 80, 81). По нажатию листает к кейсам
+    stats: {
+      wide: ["29 860 ₽", "продали с рекламы, на которую ушло 1 844 ₽"],
+      items: [["1 104", "заявки за 2 недели"], ["от 26 ₽", "за одну заявку"], ["12", "продаж за 2 дня"]],
+      more: "Смотреть кейсы ↓",
+    },
   },
 
   /* ---------- Барабан ---------- */
@@ -385,16 +491,6 @@ const CONFIG = {
   ],
   services: [
     {
-      id: "bots",
-      icon: "chat",
-      title: "Чат-бот, похожий на живого человека",
-      short: "Встречает клиента, отвечает на частые вопросы и ведёт от приветствия до оплаты. Даже в 3 часа ночи.",
-      price: "от 5 000 ₽",
-      options: [["Основной", "Весь путь от приветствия до оплаты", "5 000 ₽"], ["Рассыльщик", "Мягко напоминает о тебе", "2 000 ₽"], ["Под ключ", "Основной, рассыльщик и 14 дожимов", "24 000 ₽"]],
-      details: ["продуманная воронка продаж и автоответы", "пишу тексты сама, ты только утверждаешь", "паузы между сообщениями как в настоящей переписке", "макеты в едином стиле (в варианте под ключ)", "оставляю инструкцию, как им пользоваться"],
-      button: "Хочу чат-бота",
-    },
-    {
       id: "ads",
       icon: "target",
       title: "Реклама ВКонтакте",
@@ -404,42 +500,49 @@ const CONFIG = {
       details: ["подбираю аудиторию, которой это правда нужно", "тестирую объявления и оставляю то, что работает", "показываю цифры: сколько потрачено и сколько пришло заявок"],
       button: "Хочу рекламу",
     },
+    // Из поста 38 в канале. Цены и описание нужно подтвердить у Маши
+    {
+      id: "curator",
+      icon: "route",
+      title: "Перекураторство",
+      short: "Обучение уже куплено, а дохода пока нет? Помогу запустить рекламу и продвижение без лишних ошибок.",
+      price: "10 000 ₽",
+      options: [["Сразу", "10 000 ₽"], ["В рассрочку", "12 500 ₽"]],
+      details: ["я прошла этот путь сама: училась у двух кураторов и таргетолога", "свою рассрочку за обучение закрыла через 2 недели", "показываю бесплатные способы продвижения и таргет", "работаем с твоим сообществом и аудиторией"],
+      button: "Хочу перекураторство",
+    },
   ],
   payNote: "Можно в рассрочку, к стоимости добавляется 20%.",
 
   /* ---------- Кейсы ---------- */
   cases: [
     { head: "За 1 день", spent: "2 507 ₽", got: "95 заявок", note: "Заявка вышла примерно в 26 ₽. Многие считают такой бюджет слишком маленьким для таргета." },
-    { head: "За 2 дня", spent: "10 200 ₽", got: "365 заявок", note: "Заявка вышла примерно в 28 ₽." },
-    { head: "За 2 недели", spent: "59 000 ₽", got: "1 104 заявки", note: "Заявка вышла в 53,85 ₽." },
+    { head: "Тестовый запуск", spent: "1 844 ₽", got: "37 заявок", sales: "5 продаж на 29 860 ₽", note: "Заявка вышла в 49 ₽, а продажи вернули потраченное на рекламу в 16 раз." },
+    { head: "За 2 дня", spent: "10 200 ₽", got: "365 заявок", sales: "12 продаж", note: "Заявка вышла примерно в 28 ₽." },
+    { head: "На минимальном бюджете", spent: "2 100 ₽", got: "36 заявок", sales: "3 продажи", note: "Заявка вышла примерно в 58 ₽. Говорят, что на таком бюджете заявок нет совсем." },
+    { head: "За 2 недели", spent: "59 000 ₽", got: "1 104 заявки", sales: "19 продаж", note: "Заявка вышла в 53,85 ₽." },
   ],
   casesNote: "Это реклама онлайн-обучения. В другой нише цифры будут свои, поэтому сначала смотрю твою ситуацию и только потом что-то обещаю.",
   caseLinks: [
     { label: "Все кейсы по рекламе ↗", url: CH + "/79" },
-    { label: "Кейсы по чат-ботам ↗", url: CH + "/73" },
   ],
 
   /* ---------- Полезные посты из канала ---------- */
   useful: [
-    { title: "Про чат-ботов", items: [
-      { icon: "chat", title: "Зачем вообще нужен бот", desc: "Что он делает, пока ты занимаешься своими делами", url: CH + "/45" },
-      { icon: "funnel", title: "Заявки есть, а продаж нет", desc: "Пять причин, почему так бывает", url: CH + "/46" },
-      { icon: "chat", title: "Теряешь клиентов в личке?", desc: "Что делать, если не успеваешь отвечать", url: CH + "/120" },
-    ] },
     { title: "Про рекламу", items: [
       { icon: "target", title: "2 500 ₽ в день это мало?", desc: "Что вышло на таком бюджете", url: CH + "/80" },
       { icon: "target", title: "Реклама на минимальном бюджете", desc: "Правда ли там совсем нет заявок", url: CH + "/106" },
+      { icon: "funnel", title: "Потратили 1 844 ₽, продали на 29 860 ₽", desc: "Цифры тестового запуска", url: CH + "/93" },
+      { icon: "funnel", title: "1 104 заявки за 2 недели", desc: "Сколько из них стали продажами", url: CH + "/82" },
     ] },
     { title: "Про сообщество", items: [
       { icon: "eye", title: "Заходят и уходят, не подписавшись", desc: "Что отталкивает нового человека в сообществе ВК", url: CH + "/117" },
     ] },
   ],
 
-  /* ---------- Отзывы. Тексты и имена из канала (посты 74, 78, 77, 97, «переслано от»), разрешение спрашивает Инна у Маши ---------- */
+  /* ---------- Отзывы. Текст и имя из канала (пост 97), разрешение спрашивает Инна у Маши.
+     Отзывы по рекламе из постов 83 и «Отзывы по ведению рекламного кабинета» ещё нужно дособрать ---------- */
   reviews: [
-    { text: "Столько всего можно собрать в одном месте, чтобы клиенту было легко разобраться, а мне не приходилось каждый раз всё объяснять вручную.", who: "Алина, чат-бот" },
-    { text: "Очень понравилось работать с тобой: всё сделано качественно, понятно и красиво. Бот получился реально классный и сильно помогает в группе.", who: "Links_G, чат-бот для сообщества ВК" },
-    { text: "Я очень долго выбирала среди специалистов и ни разу не пожалела, что доверилась тебе. Теперь всем буду советовать только тебя.", who: "Анна, продающий чат-бот" },
     { text: "Если бы не ты, я так и сливала бы свой бюджет. Сегодня реклама крутится, плюсики идут. Я счастлива.", who: "Есения, реклама" },
   ],
 
@@ -520,43 +623,132 @@ const ICONS = {
   box: `<g ${GL}><path d="M20 5 34 12v16l-14 7-14-7V12z"/><path d="m6 12 14 7 14-7M20 19v16"/></g>`,
   phone: `<g ${GL}><rect x="11" y="4" width="18" height="32" rx="4"/><path d="M18 31h4"/><path d="m16 19 3 3 6-6"/></g>`,
   key: `<g ${GL}><circle cx="13" cy="20" r="8"/><path d="M21 20h15M31 20v6M26 20v4"/></g>`,
+  route: `<g ${GL}><circle cx="9" cy="31" r="3.6"/><circle cx="31" cy="9" r="3.6"/><path d="M13 31h13a6 6 0 0 0 0-12H14a6 6 0 0 1 0-12h13"/></g>`,
   crown: `<g ${GL}><path d="M6 31h28L37 12l-9 7-8-12-8 12-9-7z"/><path d="M8 36h24"/></g>`,
 };
 const icon = name => `<svg viewBox="0 0 40 40" aria-hidden="true">${ICONS[name] || ""}</svg>`;
 
-/* --------- Ноутбук ровно, спереди. Стоит перед Машей и закрывает часть руки --------- */
-function laptopSvg(l) {
-  // Ряды клавиш: симметричные, ближний ряд чуть шире
-  let keys = "";
-  [[132, 170, 5.4], [140, 180, 5.8], [148.5, 190, 6.2]].forEach(([y, width, h]) => {
-    const n = 13, step = width / n, start = 120 - width / 2;
-    for (let i = 0; i < n; i++) keys += `<rect x="${(start + i * step + .7).toFixed(1)}" y="${y}" width="${(step - 1.4).toFixed(1)}" height="${h}" rx="1" fill="#6E5236"/>`;
-  });
-  return `<svg viewBox="0 0 240 172" aria-hidden="true">
-    <defs>
-      <linearGradient id="lapMetal" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#C9A673"/><stop offset=".5" stop-color="#F1E0C2"/><stop offset="1" stop-color="#C9A673"/></linearGradient>
-      <linearGradient id="lapDeck" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#CFB387"/><stop offset="1" stop-color="#F0E0C6"/></linearGradient>
-      <linearGradient id="lapScreen" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#55402E"/><stop offset="1" stop-color="#231810"/></linearGradient>
-      <filter id="lapBlur" x="-20%" y="-80%" width="140%" height="260%"><feGaussianBlur stdDeviation="6"/></filter>
-    </defs>
-    <ellipse cx="120" cy="166" rx="116" ry="7" fill="#5A3E20" opacity=".4" filter="url(#lapBlur)"/>
-    <rect x="20" y="2" width="200" height="124" rx="9" fill="url(#lapMetal)"/>
-    <rect x="25" y="7" width="190" height="114" rx="5" fill="url(#lapScreen)"/>
-    <circle cx="120" cy="4.6" r="1" fill="#6E5236"/>
-    <text class="lap-label" x="44" y="31">${esc(l.label)}</text>
-    <text class="lap-num" id="lap-num" x="43" y="72">${esc(l.start)}</text>
-    <g fill="#E9CFA0">
-      <rect x="150" y="60" width="9" height="12" rx="2" opacity=".45"/>
-      <rect x="162" y="52" width="9" height="20" rx="2" opacity=".6"/>
-      <rect x="174" y="44" width="9" height="28" rx="2" opacity=".8"/>
-      <rect x="186" y="34" width="9" height="38" rx="2"/>
-    </g>
-    <circle class="lap-dot" cx="47" cy="93" r="3"/>
-    <text class="lap-bot" x="55" y="97">${esc(l.bot)}</text>
-    <polygon points="20,126 220,126 236,158 4,158" fill="url(#lapDeck)"/>
-    ${keys}
-    <path d="M4 158h232v2a6 6 0 0 1-6 6H10a6 6 0 0 1-6-6z" fill="#A98757"/>
-  </svg>`;
+/* --------- Телефон с рекламным кабинетом --------- */
+const rub = n => n.toLocaleString("ru-RU") + " ₽";
+const PH_STATUS = `<div class="ph-status"><span data-ph="clock">9:41</span><svg viewBox="0 0 30 9"><rect x="0" y="6" width="2.4" height="3" rx=".6"/><rect x="3.4" y="4.5" width="2.4" height="4.5" rx=".6"/><rect x="6.8" y="3" width="2.4" height="6" rx=".6"/><rect x="10.2" y="1.5" width="2.4" height="7.5" rx=".6"/><rect x="15.5" y="1" width="12.5" height="7" rx="2" fill="none" stroke="currentColor" stroke-width=".9" opacity=".5"/><rect x="17" y="2.5" width="8.5" height="4" rx="1"/><rect x="28.6" y="3.6" width="1.2" height="2" rx=".5" opacity=".5"/></svg></div>`;
+const PH_TARGET = `<svg viewBox="0 0 12 12" fill="none" stroke="#E9CFA0" stroke-width="1.4"><circle cx="6" cy="6" r="4.6"/><circle cx="6" cy="6" r="2.2"/><circle cx="6" cy="6" r=".5" fill="#E9CFA0"/></svg>`;
+const PH = { leads: 0, spent: 0, hist: [], bars: [], note: 0 };
+
+function phoneStyle() {
+  const q = new URLSearchParams(location.search).get("phone");
+  return /^[abc]$/.test(q || "") ? q : CONFIG.hero.phone.style;
+}
+
+function phoneReset() {
+  const p = CONFIG.hero.phone;
+  PH.leads = p.start;
+  PH.spent = Math.round(p.start * p.cpl);
+  PH.hist = Array.from({ length: 10 }, (_, i) => Math.round(p.start * (.5 + .5 * Math.pow(i / 9, .8))));
+  PH.bars = [5, 8, 6, 10, 12, 9, 14, 6];
+}
+
+function phoneNote(i, isNew) {
+  const n = CONFIG.hero.phone.notes[i % CONFIG.hero.phone.notes.length];
+  return `<div class="ph-note${isNew ? " in" : ""}"><i class="ph-ic">${PH_TARGET}</i><div><b>${esc(n[0])}</b><span>${esc(n[1])}</span></div><em>${isNew ? "сейчас" : (i + 1) * 3 + " мин"}</em></div>`;
+}
+
+function phoneSvg(style) {
+  let inner;
+  if (style === "b") {
+    inner = `<div class="ph-app">
+      <div class="ph-head"><b>Кабинет</b><span class="ph-on"><i class="ph-live"></i>идут показы</span></div>
+      <div class="ph-ring">
+        <svg viewBox="0 0 80 80"><defs><linearGradient id="phGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F3E2C1"/><stop offset="1" stop-color="#A67A3F"/></linearGradient></defs>
+          <circle cx="40" cy="40" r="33" fill="none" stroke="rgba(233,207,160,.15)" stroke-width="6"/>
+          <circle data-ph="ring" cx="40" cy="40" r="33" fill="none" stroke="url(#phGold)" stroke-width="6" stroke-linecap="round" stroke-dasharray="207.3" stroke-dashoffset="207.3" transform="rotate(-90 40 40)"/></svg>
+        <div><span data-ph="leads"></span><small>заявки сегодня</small></div>
+      </div>
+      <div class="ph-bars">${"<i></i>".repeat(8)}</div>
+      <div class="ph-lines"><div><small>Потрачено</small><b data-ph="spent"></b></div><div><small>За заявку</small><b data-ph="cpl"></b></div></div>
+    </div>`;
+  } else if (style === "c") {
+    inner = `<div class="ph-lock">
+      <div class="ph-date" data-ph="date"></div>
+      <div class="ph-time" data-ph="time">9:41</div>
+      <div class="ph-widget"><span data-ph="leads"></span>заявки сегодня</div>
+      <div class="ph-notes" data-ph="notes">${[0, 1, 2].map(i => phoneNote(i)).join("")}</div>
+      <div class="ph-lockbtns"><i><svg viewBox="0 0 12 12"><path d="M4 1h4v2.5L7 5v6H5V5L4 3.5z"/></svg></i><i><svg viewBox="0 0 12 12"><rect x="1" y="3" width="10" height="7" rx="1.6"/><circle cx="6" cy="6.5" r="1.8"/><path d="M4.3 3l.8-1.2h1.8L7.7 3"/></svg></i></div>
+    </div>`;
+  } else {
+    inner = `<div class="ph-app">
+      <div class="ph-head"><b>Реклама</b><span>Сегодня ▾</span></div>
+      <div class="ph-card">
+        <small>Заявки</small>
+        <div class="ph-big"><span data-ph="leads"></span><i class="ph-plus">+1</i></div>
+        <svg class="ph-chart" viewBox="0 0 104 34"><defs><linearGradient id="phFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C9A26B" stop-opacity=".5"/><stop offset="1" stop-color="#C9A26B" stop-opacity="0"/></linearGradient></defs>
+          <path data-ph="area" fill="url(#phFill)"/><path data-ph="line" fill="none" stroke="#A67A3F" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/><circle data-ph="dot" r="2.4" fill="#7A5226" stroke="#fff" stroke-width="1"/></svg>
+      </div>
+      <div class="ph-row">
+        <div class="ph-card"><small>Потрачено</small><b data-ph="spent"></b></div>
+        <div class="ph-card"><small>За заявку</small><b data-ph="cpl"></b></div>
+      </div>
+      <div class="ph-card ph-ad"><i class="ph-live"></i><div><b>Объявление 3</b><small>активно, показы идут</small></div></div>
+    </div>`;
+  }
+  return `<div class="phone" aria-hidden="true"><i class="ph-btn a"></i><i class="ph-btn v1"></i><i class="ph-btn v2"></i><i class="ph-btn p"></i>
+    <div class="ph-bezel"><div class="ph-screen"><div class="ph-island"></div>${PH_STATUS}${inner}<i class="ph-home"></i></div></div></div>`;
+}
+
+// Рисует текущие цифры на экране телефона
+function phonePaint(bump) {
+  const root = document.querySelector(".phone");
+  if (!root) return;
+  const all = k => root.querySelectorAll(`[data-ph="${k}"]`);
+  const set = (k, v) => all(k).forEach(e => { e.textContent = v; });
+  set("leads", PH.leads);
+  set("spent", rub(PH.spent));
+  set("cpl", rub(Math.round(PH.spent / PH.leads)));
+  const now = new Date();
+  set("clock", now.toLocaleTimeString("ru-RU", { hour: "numeric", minute: "2-digit" }));
+  set("time", now.toLocaleTimeString("ru-RU", { hour: "numeric", minute: "2-digit" }));
+  set("date", now.toLocaleDateString("ru-RU", { weekday: "long", day: "numeric", month: "long" }));
+  // A: линия графика
+  const line = root.querySelector('[data-ph="line"]');
+  if (line) {
+    const h = PH.hist, min = Math.min(...h), max = Math.max(...h), W = 100, H = 34;
+    const pts = h.map((v, i) => [2 + i * W / (h.length - 1), H - 3 - (v - min) / Math.max(1, max - min) * (H - 10)]);
+    const d = pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+    line.setAttribute("d", d);
+    root.querySelector('[data-ph="area"]').setAttribute("d", d + ` L${W + 2} ${H} L2 ${H} Z`);
+    const dot = root.querySelector('[data-ph="dot"]'), last = pts[pts.length - 1];
+    dot.setAttribute("cx", last[0].toFixed(1));
+    dot.setAttribute("cy", last[1].toFixed(1));
+  }
+  // B: кольцо до 100 заявок и столбики по часам
+  const ring = root.querySelector('[data-ph="ring"]');
+  if (ring) ring.style.strokeDashoffset = (207.3 * (1 - PH.leads / 100)).toFixed(1);
+  const bars = root.querySelectorAll(".ph-bars i"), top = Math.max(16, ...PH.bars);
+  bars.forEach((b, i) => { b.style.height = (PH.bars[i] / top * 100).toFixed(0) + "%"; });
+  if (!bump) return;
+  all("leads").forEach(e => { e.classList.remove("ph-bump"); void e.offsetWidth; e.classList.add("ph-bump"); });
+  const plus = root.querySelector(".ph-plus");
+  if (plus) { plus.classList.remove("on"); void plus.offsetWidth; plus.classList.add("on"); }
+  // C: новое уведомление сверху, старые уезжают вниз
+  const notes = root.querySelector('[data-ph="notes"]');
+  if (notes) {
+    PH.note++;
+    notes.insertAdjacentHTML("afterbegin", phoneNote(PH.note + 2, true));
+    while (notes.children.length > 4) notes.lastElementChild.remove();
+    [...notes.children].forEach((n, i) => { if (i) n.querySelector("em").textContent = i * 3 + " мин"; });
+  }
+}
+
+function phoneTick() {
+  const p = CONFIG.hero.phone;
+  if (PH.leads >= p.end) phoneReset();
+  else {
+    PH.leads++;
+    PH.spent += Math.round(p.cpl - 4 + Math.random() * 8);
+    PH.hist.push(PH.leads); PH.hist.shift();
+    PH.bars[PH.bars.length - 1] += 2;
+    if (PH.bars[PH.bars.length - 1] > 15) { PH.bars.shift(); PH.bars.push(2); }
+  }
+  phonePaint(true);
 }
 
 /* --------- Коричневый развод за фото --------- */
@@ -612,19 +804,24 @@ function render() {
   document.getElementById("app").innerHTML = `
     <header class="hero">
       ${satinSvg()}
-      <div class="hero-stage">
+      <div class="hero-stage" data-phone="${phoneStyle()}">
         <div class="hero-top">
           <div class="hero-badges">${c.hero.badges.map(b => `<span class="hero-badge">${icon(b.icon)}${esc(b.text)}</span>`).join("")}</div>
           <h1 class="hero-title">${c.hero.title}</h1>
         </div>
         ${swirlSvg()}
         <div class="hero-figure"><picture><source srcset="${esc(c.hero.photo)}" type="image/webp"><img src="${esc(c.hero.photoFallback)}" alt="${esc(c.hero.name)}"></picture></div>
-        <div class="desk" aria-hidden="true">${laptopSvg(c.hero.laptop)}</div>
+        ${phoneSvg(phoneStyle())}
         ${c.hero.messages.map((m, i) => `<div class="pop p${i + 1}" aria-hidden="true"><div class="ava${m.gold ? " gold" : ""}">${esc(m.ava)}</div><div><small>${esc(m.from)}</small>${esc(m.text)}</div></div>`).join("")}
         <div class="hero-name"><b>${esc(c.hero.name)}</b><span>${esc(c.hero.role)}</span></div>
       </div>
     </header>
     <p class="about">${c.hero.about}</p>
+    <div class="stats" data-go="cases">
+      <div class="stat wide"><b>${esc(c.hero.stats.wide[0])}</b><span>${esc(c.hero.stats.wide[1])}</span></div>
+      ${c.hero.stats.items.map(x => `<div class="stat"><b>${esc(x[0])}</b><span>${esc(x[1])}</span></div>`).join("")}
+      <div class="stats-more">${esc(c.hero.stats.more)}</div>
+    </div>
 
     <nav class="nav">
       <a class="chip hot" data-go="game">Барабан скидок</a>
@@ -678,6 +875,7 @@ function render() {
           <div class="case-arrow" aria-hidden="true">→</div>
           <div><small>получили</small><div class="case-got">${esc(k.got)}</div></div>
         </div>
+        ${k.sales ? `<div class="case-sales">${esc(k.sales)}</div>` : ""}
         <div class="case-note">${esc(k.note)}</div>
       </div>`).join("")}
       <p class="cases-note">${esc(c.casesNote)}</p>
@@ -686,7 +884,7 @@ function render() {
 
     <section id="reviews">
       <h2>Что <em>пишут</em></h2>
-      <p class="h2-note">Листай вбок.</p>
+      ${c.reviews.length > 1 ? `<p class="h2-note">Листай вбок.</p>` : ""}
       <div class="reviews">
         ${c.reviews.map(x => `<div class="review"><div class="quote">“</div><p>${esc(x.text)}</p><div class="who">${esc(x.who)}</div></div>`).join("")}
       </div>
@@ -965,27 +1163,19 @@ function initTelegram() {
   tg.MainButton.show();
 }
 
-// Счётчик на экране ноутбука: растёт, когда очередная заявка опускается в экран
-function startLaptop() {
-  const num = document.getElementById("lap-num");
+// Счётчик на экране телефона: растёт, когда очередная заявка опускается в экран
+function startPhone() {
+  phoneReset();
+  phonePaint(false);
   if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  const { start: first } = CONFIG.hero.laptop;
-  let n = first;
-  const tick = () => {
-    n = n >= first + 30 ? first : n + 1;
-    num.textContent = n;
-    num.classList.remove("bump");
-    void num.offsetWidth;
-    num.classList.add("bump");
-  };
-  setTimeout(() => { tick(); setInterval(tick, 3000); }, 400 + 2900); // 31% от 9 секунд после задержки первой заявки
+  setTimeout(() => { phoneTick(); setInterval(phoneTick, 3000); }, 400 + 2790); // 31% от 9 секунд после задержки первой заявки
 }
 
 async function start() {
   render();
   bindEvents();
   initTelegram();
-  startLaptop();
+  startPhone();
   setInitialFaces();
   const btn = document.getElementById("spin");
   btn.disabled = true;
